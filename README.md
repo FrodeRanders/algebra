@@ -17,6 +17,18 @@ Successfully installed maturin-1.12.4
 ## Building the Algebra backend
 ```terminaloutput
 (.venv) ➜  (cd algebrapy && maturin develop)
+🔗 Found pyo3 bindings
+🐍 Found CPython 3.12 at /Users/froran/Projects/gautelis/algebra/.venv/bin/python
+   Compiling pyo3-build-config v0.28.2
+   Compiling pyo3-ffi v0.28.2
+   Compiling pyo3-macros-backend v0.28.2
+   Compiling pyo3 v0.28.2
+   Compiling pyo3-macros v0.28.2
+   Compiling algebrapy v0.1.0 (/Users/froran/Projects/gautelis/algebra/algebrapy)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.59s
+📦 Built wheel for CPython 3.12 to /var/folders/ld/gmfpcx6n12j8w922_4_sbcvc0000gn/T/.tmpTO7MXa/algebrapy-0.1.0-cp312-cp312-macosx_11_0_arm64.whl
+✏️ Setting installed package as editable
+🛠 Installed algebrapy-0.1.0
 ```
 
 ## Play with the Algebra package
@@ -42,7 +54,7 @@ print("a:", a)
 print("b:", b)
 print("a+b:", a + b)
 print("a*b:", a * b)
-print("b**7:", b**7)          # should be 1 in GF(2^3)^*
+print("b**7:", b**7)          # should be 1 in GF(2^3)
 print("a/b:", a / b)
 print("a**-1:", a**-1)
 print("3 + a:", 3 + a)
