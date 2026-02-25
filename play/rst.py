@@ -1,6 +1,6 @@
 import algebrapy as alg
 
-K = alg.Fq(2, [1,1,0,1])      # x^3 + x + 1
+K = alg.Fq(2, [1,1,0,1])      # 1 + x + x^3
 a = K.elem([1,0,1])           # 1 + x^2
 b = K.elem([0,1])             # x
 
