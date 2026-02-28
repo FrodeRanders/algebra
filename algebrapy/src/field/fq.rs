@@ -67,7 +67,7 @@ fn poly_mod(p: u64, mut a: Vec<u64>, modulus: &[u64]) -> PyResult<Vec<u64>> {
         return Err(PyValueError::new_err("invalid modulus (leading coefficient 0)"));
     }
     // We only support fields, so we require modulus to be monic for simplest reduction
-    // (You can generalize later.)
+    // TODO: generalization
     if mlc != 1 {
         return Err(PyValueError::new_err("for now, modulus must be monic (leading coefficient 1)"));
     }
@@ -114,7 +114,7 @@ fn poly_egcd(p: u64, a: &PolyFp, b: &PolyFp) -> PyResult<(PolyFp, PolyFp, PolyFp
 #[pymethods]
 impl Fq {
     /// Construct GF(p^k) as Fp[x]/(f). `modulus_coeffs` is low->high coeffs for f.
-    /// For now, f must be monic and irreducible (you can check irreducible via PolyFp.is_irreducible()).
+    /// For now, f must be monic and irreducible, which can be checked via PolyFp.is_irreducible().
     #[new]
     pub fn new(p: u64, modulus_coeffs: Vec<i128>) -> PyResult<Self> {
         let modulus = PolyFp::new(p, modulus_coeffs)?;
