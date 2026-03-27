@@ -1,9 +1,12 @@
 use pyo3::prelude::*;
 
 pub mod arith;
+pub mod coding;
 pub mod field;
 pub mod group;
 
+use coding::bch::BinaryBchCode;
+use coding::rs::ReedSolomonCode;
 use field::fp::{Fp, FpElem};
 use field::poly_fp::PolyFp;
 use field::fq::{Fq, FqElem};
@@ -20,6 +23,8 @@ mod algebrapy {
         m.add_class::<PolyFp>()?;
         m.add_class::<Fq>()?;
         m.add_class::<FqElem>()?;
+        m.add_class::<BinaryBchCode>()?;
+        m.add_class::<ReedSolomonCode>()?;
         m.add_class::<Perm>()?;
         m.add_class::<Sn>()?;
         Ok(())

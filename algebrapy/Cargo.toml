@@ -8,8 +8,12 @@ edition = "2024"
 name = "algebrapy"
 crate-type = ["cdylib", "rlib"]
 
+[features]
+default = []
+python-module = ["pyo3/extension-module"]
+
 [dependencies]
-pyo3 = { version = "0.28.2", features = ["extension-module"] }
+pyo3 = { version = "0.28.2" }
 
 [dev-dependencies]
 # none
