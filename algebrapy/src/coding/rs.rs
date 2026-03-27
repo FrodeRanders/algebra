@@ -36,12 +36,12 @@ impl ReedSolomonCode {
         )?;
         let n = fq.size() - 1;
         if n == 0 {
-            return Err(PyValueError::new_err("field is too small for Reed-Solomon codes"));
+            return Err(PyValueError::new_err(
+                "field is too small for Reed-Solomon codes",
+            ));
         }
         if dimension == 0 || dimension >= n as usize {
-            return Err(PyValueError::new_err(
-                "dimension must satisfy 1 <= k < q-1",
-            ));
+            return Err(PyValueError::new_err("dimension must satisfy 1 <= k < q-1"));
         }
 
         let alpha = fq.elem(vec![0, 1])?;
@@ -102,7 +102,9 @@ impl ReedSolomonCode {
         let fq = self.make_field()?;
         let generator = self.make_generator_poly()?;
         check_symbols(&fq, &word)?;
-        Ok(fq_poly_mod(&fq, &word, &generator)?.iter().all(FqElem::is_zero))
+        Ok(fq_poly_mod(&fq, &word, &generator)?
+            .iter()
+            .all(FqElem::is_zero))
     }
 
     pub fn syndromes(&self, word: Vec<FqElem>) -> PyResult<Vec<FqElem>> {
@@ -322,7 +324,11 @@ fn fq_poly_scale_shift(
     Ok(fq_poly_trim(out))
 }
 
-fn fq_poly_div_rem(fq: &Fq, numer: &[FqElem], denom: &[FqElem]) -> PyResult<(Vec<FqElem>, Vec<FqElem>)> {
+fn fq_poly_div_rem(
+    fq: &Fq,
+    numer: &[FqElem],
+    denom: &[FqElem],
+) -> PyResult<(Vec<FqElem>, Vec<FqElem>)> {
     let mut r = fq_poly_trim(numer.to_vec());
     let d = fq_poly_trim(denom.to_vec());
     if d.is_empty() {
@@ -557,9 +563,21 @@ mod tests {
             vec![fq.zero(), fq.one(), fq.zero()],
             vec![fq.zero(), fq.zero(), fq.one()],
             vec![fq.elem(vec![0, 1]).unwrap(), fq.zero(), fq.one()],
-            vec![fq.elem(vec![1, 1]).unwrap(), fq.elem(vec![1, 0, 1]).unwrap(), fq.zero()],
-            vec![fq.elem(vec![1]).unwrap(), fq.elem(vec![0, 1]).unwrap(), fq.elem(vec![1, 1]).unwrap()],
-            vec![fq.elem(vec![1, 1, 1]).unwrap(), fq.elem(vec![1, 0]).unwrap(), fq.elem(vec![0, 0, 1]).unwrap()],
+            vec![
+                fq.elem(vec![1, 1]).unwrap(),
+                fq.elem(vec![1, 0, 1]).unwrap(),
+                fq.zero(),
+            ],
+            vec![
+                fq.elem(vec![1]).unwrap(),
+                fq.elem(vec![0, 1]).unwrap(),
+                fq.elem(vec![1, 1]).unwrap(),
+            ],
+            vec![
+                fq.elem(vec![1, 1, 1]).unwrap(),
+                fq.elem(vec![1, 0]).unwrap(),
+                fq.elem(vec![0, 0, 1]).unwrap(),
+            ],
         ];
 
         for msg in messages {

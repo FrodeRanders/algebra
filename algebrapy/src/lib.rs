@@ -4,13 +4,15 @@ pub mod arith;
 pub mod coding;
 pub mod field;
 pub mod group;
+pub mod ring;
 
 use coding::bch::BinaryBchCode;
 use coding::rs::ReedSolomonCode;
 use field::fp::{Fp, FpElem};
-use field::poly_fp::PolyFp;
 use field::fq::{Fq, FqElem};
+use field::poly_fp::PolyFp;
 use group::perm::{Perm, Sn};
+use ring::zn::{Zn, ZnElem};
 
 /// A Python module implemented in Rust.
 #[pymodule]
@@ -23,6 +25,8 @@ mod algebrapy {
         m.add_class::<PolyFp>()?;
         m.add_class::<Fq>()?;
         m.add_class::<FqElem>()?;
+        m.add_class::<Zn>()?;
+        m.add_class::<ZnElem>()?;
         m.add_class::<BinaryBchCode>()?;
         m.add_class::<ReedSolomonCode>()?;
         m.add_class::<Perm>()?;

@@ -90,7 +90,7 @@ fn poly_mod(p: u64, mut a: Vec<u64>, modulus: &[u64]) -> PyResult<Vec<u64>> {
         }
         let shift = (ad - md) as usize;
         let factor = *a.last().unwrap(); // since modulus is monic
-                                         // a -= factor * x^shift * modulus
+        // a -= factor * x^shift * modulus
         for i in 0..m.len() {
             let idx = i + shift;
             let subtr = ((factor as u128 * m[i] as u128) % (p as u128)) as u64;

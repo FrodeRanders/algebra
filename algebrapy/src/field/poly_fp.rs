@@ -212,11 +212,7 @@ impl PolyFp {
             a = b;
             b = r;
         }
-        if a.is_zero() {
-            Ok(a)
-        } else {
-            a.monic()
-        }
+        if a.is_zero() { Ok(a) } else { a.monic() }
     }
 
     pub fn egcd(&self, other: &PolyFp) -> PyResult<(PolyFp, PolyFp, PolyFp)> {
@@ -332,7 +328,13 @@ mod tests {
         let b = PolyFp::new(2, vec![1, 1, 0, 1]).unwrap(); // 1 + x + x^3
         let (g, s, t) = a.egcd(&b).unwrap();
 
-        let lhs = s.mul(&a).unwrap().add(&t.mul(&b).unwrap()).unwrap().monic().unwrap();
+        let lhs = s
+            .mul(&a)
+            .unwrap()
+            .add(&t.mul(&b).unwrap())
+            .unwrap()
+            .monic()
+            .unwrap();
         assert_eq!(lhs, g.monic().unwrap());
         assert_eq!(g.monic().unwrap().coeffs(), vec![1]);
     }
@@ -368,8 +370,7 @@ mod tests {
                                             continue;
                                         }
                                         let (q, r) = a.div_rem(&b).unwrap();
-                                        let recomposed =
-                                            q.mul(&b).unwrap().add(&r).unwrap();
+                                        let recomposed = q.mul(&b).unwrap().add(&r).unwrap();
                                         assert_eq!(recomposed, a, "p={p}, a={:?}, b={:?}", a, b);
                                         assert!(r.is_zero() || r.degree() < b.degree());
                                     }

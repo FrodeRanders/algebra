@@ -23,7 +23,11 @@ impl BinaryBchCode {
     /// in low-to-high order. The code uses alpha = x mod f(x) as a primitive
     /// element candidate and validates that it has multiplicative order n.
     #[new]
-    pub fn new(m: u32, primitive_modulus_coeffs: Vec<i128>, designed_distance: u64) -> PyResult<Self> {
+    pub fn new(
+        m: u32,
+        primitive_modulus_coeffs: Vec<i128>,
+        designed_distance: u64,
+    ) -> PyResult<Self> {
         if m == 0 {
             return Err(PyValueError::new_err("m must be >= 1"));
         }
@@ -166,9 +170,7 @@ impl BinaryBchCode {
     pub fn extract_systematic_message(&self, codeword_bits: Vec<u64>) -> PyResult<Vec<u64>> {
         self.check_word_length(&codeword_bits)?;
         if !self.is_codeword(codeword_bits.clone())? {
-            return Err(PyValueError::new_err(
-                "word is not a valid BCH codeword",
-            ));
+            return Err(PyValueError::new_err("word is not a valid BCH codeword"));
         }
         let parity_len = self.generator_degree();
         let mut out = if codeword_bits.len() <= parity_len {
@@ -537,7 +539,12 @@ fn eval_binary_poly_at(fq: &Fq, coeffs: &[u64], point: &FqElem) -> PyResult<FqEl
     Ok(acc)
 }
 
-fn syndrome_elements(fq: &Fq, alpha: &FqElem, word_bits: &[u64], count: usize) -> PyResult<Vec<FqElem>> {
+fn syndrome_elements(
+    fq: &Fq,
+    alpha: &FqElem,
+    word_bits: &[u64],
+    count: usize,
+) -> PyResult<Vec<FqElem>> {
     let mut out = Vec::with_capacity(count);
     for i in 1..=count {
         let root = fq.pow(alpha, i as i128)?;
@@ -621,7 +628,12 @@ fn fq_poly_add(fq: &Fq, a: &[FqElem], b: &[FqElem]) -> PyResult<Vec<FqElem>> {
     Ok(fq_poly_trim(out))
 }
 
-fn fq_poly_scale_shift(fq: &Fq, poly: &[FqElem], scale: &FqElem, shift: usize) -> PyResult<Vec<FqElem>> {
+fn fq_poly_scale_shift(
+    fq: &Fq,
+    poly: &[FqElem],
+    scale: &FqElem,
+    shift: usize,
+) -> PyResult<Vec<FqElem>> {
     let mut out = vec![fq.zero(); poly.len() + shift];
     for (i, coeff) in poly.iter().enumerate() {
         out[i + shift] = fq.mul(coeff, scale)?;
@@ -726,7 +738,11 @@ mod tests {
         assert_eq!(word.len(), 7);
         assert!(code.is_codeword(word.clone()).unwrap());
         assert!(code.parity_check(word).unwrap());
-        assert_eq!(code.extract_message(code.encode(msg.clone()).unwrap()).unwrap(), msg);
+        assert_eq!(
+            code.extract_message(code.encode(msg.clone()).unwrap())
+                .unwrap(),
+            msg
+        );
     }
 
     #[test]
@@ -801,7 +817,8 @@ mod tests {
         received[2] ^= 1;
         received[8] ^= 1;
         assert_eq!(
-            code.decode_shortened_systematic_message(received, 3).unwrap(),
+            code.decode_shortened_systematic_message(received, 3)
+                .unwrap(),
             msg
         );
     }
@@ -828,7 +845,9 @@ mod tests {
         let k_short = code.shortened_parameters(shorten_by).unwrap().1;
         for mask in 0usize..(1 << k_short) {
             let msg = bits_from_mask(mask, k_short);
-            let short_codeword = code.encode_shortened_systematic(msg.clone(), shorten_by).unwrap();
+            let short_codeword = code
+                .encode_shortened_systematic(msg.clone(), shorten_by)
+                .unwrap();
 
             let mut short_received = short_codeword.clone();
             short_received[0] ^= 1;

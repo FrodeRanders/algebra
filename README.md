@@ -7,14 +7,16 @@ This is algebrapy - a Python package for abstract algebra implemented in Rust (u
 1. Finite Fields
 - Fp / FpElem - Prime fields GF(p) where p is prime
 - Fq / FqElem - Extension fields GF(p^k) constructed as polynomial quotient rings Fpx/(f) where f is irreducible
-2. Permutation Groups
+2. Finite Rings
+- Zn / ZnElem - Integer residue rings Z/nZ with unit detection and inversion for units
+3. Permutation Groups
 - Perm - Permutations (bijections) with composition, inversion, exponentiation
 - Sn - Symmetric groups S_n with element enumeration and subgroup generation
-3. Arithmetic Utilities
+4. Arithmetic Utilities
 - Extended GCD algorithm
 - Prime number checking
 - Modular inverse
-4. Coding Theory
+5. Coding Theory
 - BinaryBchCode - primitive narrow-sense binary BCH generator construction, encoding, and syndrome checks
 - ReedSolomonCode - primitive narrow-sense Reed-Solomon codes over GF(p^m)
 
@@ -29,9 +31,16 @@ a = alg.Fp(7).elem(3)    # 3 (mod 7)
 # GF(2^3) - extension field with irreducible polynomial 1 + x + x^3
 K = alg.Fq(2, [1,1,0,1])
 a = K.elem([1,0,1])      # 1 + x^2
+
+# Z/12Z - ring with zero divisors
+R = alg.Zn(12)
+u = R.elem(5)
+z = R.elem(6)
 ```
 
-The implementation supports addition, subtraction, multiplication, division, exponentiation (including negative exponents), multiplicative order, and other algebraic operations. Built with maturin for easy Python integration.
+The implementation supports addition, subtraction, multiplication, and exponentiation across the algebraic structures it exposes. Division and negative exponents are available when an element is invertible, which for `Zn` means the element is a unit. Built with maturin for easy Python integration.
+
+There is also a runnable example in [`play/zn_ring_basics.py`](/Users/froran/Projects/gautelis/algebra/play/zn_ring_basics.py).
 
 ## BCH playground
 
@@ -75,7 +84,7 @@ print("shortened codeword =", sc)
 print("shortened decoded message =", big.decode_shortened_systematic_message(sc, 3))
 ```
 
-There is also a fuller runnable example in [`play/bch.py`](/Users/froran/Projects/gautelis/algebra/play/bch.py) that exercises:
+There is also a fuller runnable example in [`play/bch_code_demo.py`](/Users/froran/Projects/gautelis/algebra/play/bch_code_demo.py) that exercises:
 - cyclic and systematic encoding
 - shortened systematic encoding
 - syndrome computation and decoding
@@ -104,7 +113,7 @@ received[5] = received[5] + F.elem([1, 1])
 print("decoded message =", rs.decode_message(received))
 ```
 
-There is also a runnable example in [`play/rs.py`](/Users/froran/Projects/gautelis/algebra/play/rs.py).
+There is also a runnable example in [`play/reed_solomon_demo.py`](/Users/froran/Projects/gautelis/algebra/play/reed_solomon_demo.py).
 
 ## Setting up a Python environment
 
@@ -147,9 +156,32 @@ For local Python smoke tests after `maturin develop`, use the virtualenv interpr
 On this repository, `python3` may still resolve to the system interpreter instead of `.venv/bin/python`, so `import algebrapy` can fail even though the editable install succeeded.
 
 ## Play with the Algebra package
+
+Example scripts in `play/`:
+- `fp_field_methods.py` - prime-field operations through the explicit `Fp` API
+- `fp_operator_overloads.py` - prime-field arithmetic via Python operators
+- `fp_pow_protocol.py` - exponentiation and `pow(...)` on field elements
+- `fp_multiplicative_orders.py` - multiplicative orders and primitive elements in `Fp*`
+- `fp_quadratic_residue_table.py` - quadratic residue checks and square roots over `Fp`
+- `fp_quadratic_residues_and_dlog.py` - quadratic residues together with discrete logarithms
+- `fp_cayley_table.py` - multiplication table for a small prime field
+- `fq_extension_construction.py` - building `GF(p^k)` from an irreducible polynomial
+- `fq_operator_overloads.py` - extension-field arithmetic via Python operators
+- `fq_power_cycle.py` - powers of a distinguished element in an extension field
+- `fq_trace_and_norm.py` - trace and norm in `GF(2^3)`
+- `fq_trace_norm_over_f9.py` - trace, norm, and primitive elements in `GF(3^2)`
+- `fq_primitive_elements.py` - primitive elements in a small extension field
+- `zn_ring_basics.py` - arithmetic, units, and inversion in `Z/nZ`
+- `sn_subgroup_generation.py` - subgroup generation in a symmetric group
+- `bch_code_demo.py` - BCH encoding, decoding, shortening, and code parameters
+- `reed_solomon_demo.py` - Reed-Solomon encoding, syndromes, and decoding
+
 ```terminaloutput
 (.venv) ➜  cd play
-(.venv) ➜  python ghi.py
+(.venv) ➜  python fp_field_methods.py
+field modulus = 7
+elements = [0 (mod 7), 1 (mod 7), 2 (mod 7), 3 (mod 7), 4 (mod 7), 5 (mod 7), 6 (mod 7)]
+nonzero elements = [1 (mod 7), 2 (mod 7), 3 (mod 7), 4 (mod 7), 5 (mod 7), 6 (mod 7)]
 a = 3 (mod 7) b = 5 (mod 7)
 a+b = 1 (mod 7)
 a*b = 1 (mod 7)
@@ -158,27 +190,29 @@ a^6 = 1 (mod 7)
 order(a) = 6
 Fermat check OK
 
-(.venv) ➜  cat rst.py 
+(.venv) ➜  cat fq_operator_overloads.py
 import algebrapy as alg
 
-K = alg.Fq(2, [1,1,0,1])      # 1 + x + x^3
-a = K.elem([1,0,1])           # 1 + x^2
-b = K.elem([0,1])             # x
+K = alg.Fq(2, [1, 1, 0, 1])  # 1 + x + x^3
+a = K.elem([1, 0, 1])  # 1 + x^2
+b = K.elem([0, 1])  # x
 
 print("a:", a)
 print("b:", b)
 print("a+b:", a + b)
+print("a-b:", a - b)
 print("a*b:", a * b)
-print("b**7:", b**7)          # should be 1 in GF(2^3)
+print("b**7:", b**7)
 print("a/b:", a / b)
 print("a**-1:", a**-1)
 print("3 + a:", 3 + a)
-print("2 * b:", 2 * b)        # note: in F2, 2 ≡ 0 => gives 0
+print("2 * b:", 2 * b)
 
-(.venv) ➜  python rst.py 
+(.venv) ➜  python fq_operator_overloads.py
 a: 1 + x^2 in GF(2^3)
 b: x in GF(2^3)
 a+b: 1 + x + x^2 in GF(2^3)
+a-b: 1 + x + x^2 in GF(2^3)
 a*b: 1 in GF(2^3)
 b**7: 1 in GF(2^3)
 a/b: 1 + x + x^2 in GF(2^3)
