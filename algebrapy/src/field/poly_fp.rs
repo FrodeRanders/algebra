@@ -1,10 +1,10 @@
-use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 
 use crate::arith::egcd::inv_mod_i128;
 
 #[pyclass(frozen, from_py_object)]
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct PolyFp {
     p: u64,
     coeffs: Vec<u64>, // low -> high
@@ -12,23 +12,36 @@ pub struct PolyFp {
 
 fn trim(mut v: Vec<u64>) -> Vec<u64> {
     while let Some(&last) = v.last() {
-        if last == 0 { v.pop(); } else { break; }
+        if last == 0 {
+            v.pop();
+        } else {
+            break;
+        }
     }
     v
 }
 
 fn canon_coeffs(p: u64, coeffs: &[i128]) -> Vec<u64> {
     let m = p as i128;
-    trim(coeffs.iter().map(|&c| {
-        let mut r = c % m;
-        if r < 0 { r += m; }
-        r as u64
-    }).collect())
+    trim(
+        coeffs
+            .iter()
+            .map(|&c| {
+                let mut r = c % m;
+                if r < 0 {
+                    r += m;
+                }
+                r as u64
+            })
+            .collect(),
+    )
 }
 
 fn inv_mod_p(a: u64, p: u64) -> PyResult<u64> {
     if a == 0 {
-        return Err(PyValueError::new_err("leading coefficient not invertible (0)"));
+        return Err(PyValueError::new_err(
+            "leading coefficient not invertible (0)",
+        ));
     }
     let inv = inv_mod_i128(a as i128, p as i128)
         .ok_or_else(|| PyValueError::new_err("coefficient not invertible mod p"))?;
@@ -42,24 +55,41 @@ impl PolyFp {
         if p < 2 {
             return Err(PyValueError::new_err("p must be >= 2"));
         }
-        Ok(Self { p, coeffs: canon_coeffs(p, &coeffs) })
+        Ok(Self {
+            p,
+            coeffs: canon_coeffs(p, &coeffs),
+        })
     }
 
-    pub fn p(&self) -> u64 { self.p }
+    pub fn p(&self) -> u64 {
+        self.p
+    }
 
-    pub fn coeffs(&self) -> Vec<u64> { self.coeffs.clone() }
+    pub fn coeffs(&self) -> Vec<u64> {
+        self.coeffs.clone()
+    }
 
     pub fn degree(&self) -> i64 {
-        if self.coeffs.is_empty() { -1 } else { (self.coeffs.len() as i64) - 1 }
+        if self.coeffs.is_empty() {
+            -1
+        } else {
+            (self.coeffs.len() as i64) - 1
+        }
     }
 
-    pub fn is_zero(&self) -> bool { self.coeffs.is_empty() }
+    pub fn is_zero(&self) -> bool {
+        self.coeffs.is_empty()
+    }
 
-    pub fn is_one(&self) -> bool { self.coeffs.len() == 1 && self.coeffs[0] == 1 }
+    pub fn is_one(&self) -> bool {
+        self.coeffs.len() == 1 && self.coeffs[0] == 1
+    }
 
     pub fn monic(&self) -> PyResult<PolyFp> {
         if self.is_zero() {
-            return Err(PyValueError::new_err("zero polynomial cannot be made monic"));
+            return Err(PyValueError::new_err(
+                "zero polynomial cannot be made monic",
+            ));
         }
         let lc = *self.coeffs.last().unwrap();
         let inv = inv_mod_p(lc, self.p)?;
@@ -68,13 +98,23 @@ impl PolyFp {
 
     pub fn add(&self, other: &PolyFp) -> PyResult<PolyFp> {
         self.check(other)?;
-        Ok(PolyFp { p: self.p, coeffs: trim(add_coeffs(self.p, &self.coeffs, &other.coeffs)) })
+        Ok(PolyFp {
+            p: self.p,
+            coeffs: trim(add_coeffs(self.p, &self.coeffs, &other.coeffs)),
+        })
     }
 
     pub fn neg(&self) -> PolyFp {
         let p = self.p;
-        let coeffs = self.coeffs.iter().map(|&c| if c == 0 { 0 } else { p - c }).collect();
-        PolyFp { p, coeffs: trim(coeffs) }
+        let coeffs = self
+            .coeffs
+            .iter()
+            .map(|&c| if c == 0 { 0 } else { p - c })
+            .collect();
+        PolyFp {
+            p,
+            coeffs: trim(coeffs),
+        }
     }
 
     pub fn sub(&self, other: &PolyFp) -> PyResult<PolyFp> {
@@ -83,14 +123,26 @@ impl PolyFp {
 
     pub fn mul(&self, other: &PolyFp) -> PyResult<PolyFp> {
         self.check(other)?;
-        Ok(PolyFp { p: self.p, coeffs: trim(mul_coeffs(self.p, &self.coeffs, &other.coeffs)) })
+        Ok(PolyFp {
+            p: self.p,
+            coeffs: trim(mul_coeffs(self.p, &self.coeffs, &other.coeffs)),
+        })
     }
 
     pub fn scale(&self, k: u64) -> PolyFp {
         let p = self.p;
-        if k % p == 0 || self.is_zero() { return PolyFp { p, coeffs: vec![] }; }
-        let coeffs = self.coeffs.iter().map(|&c| ((c as u128 * k as u128) % (p as u128)) as u64).collect();
-        PolyFp { p, coeffs: trim(coeffs) }
+        if k % p == 0 || self.is_zero() {
+            return PolyFp { p, coeffs: vec![] };
+        }
+        let coeffs = self
+            .coeffs
+            .iter()
+            .map(|&c| ((c as u128 * k as u128) % (p as u128)) as u64)
+            .collect();
+        PolyFp {
+            p,
+            coeffs: trim(coeffs),
+        }
     }
 
     /// Long division: self = q*modulus + r
@@ -104,12 +156,16 @@ impl PolyFp {
         let mut q: Vec<u64> = vec![];
 
         let md = modulus.degree();
-        let mut rdeg = if r.is_empty() { -1 } else { (r.len() as i64) - 1 };
+        let mut rdeg = if r.is_empty() {
+            -1
+        } else {
+            (r.len() as i64) - 1
+        };
         let mlc = *modulus.coeffs.last().unwrap();
         let mlc_inv = inv_mod_p(mlc, p)?;
 
         if rdeg < md {
-            return Ok((PolyFp{p, coeffs: vec![]}, PolyFp{p, coeffs: trim(r)}));
+            return Ok((PolyFp { p, coeffs: vec![] }, PolyFp { p, coeffs: trim(r) }));
         }
 
         q.resize((rdeg - md + 1) as usize, 0);
@@ -125,13 +181,21 @@ impl PolyFp {
                 let idx = i + shift;
                 let subtr = ((factor as u128 * modulus.coeffs[i] as u128) % (p as u128)) as u64;
                 let cur = r[idx];
-                r[idx] = if cur >= subtr { cur - subtr } else { p - (subtr - cur) };
+                r[idx] = if cur >= subtr {
+                    cur - subtr
+                } else {
+                    p - (subtr - cur)
+                };
             }
             r = trim(r);
-            rdeg = if r.is_empty() { -1 } else { (r.len() as i64) - 1 };
+            rdeg = if r.is_empty() {
+                -1
+            } else {
+                (r.len() as i64) - 1
+            };
         }
 
-        Ok((PolyFp{p, coeffs: trim(q)}, PolyFp{p, coeffs: trim(r)}))
+        Ok((PolyFp { p, coeffs: trim(q) }, PolyFp { p, coeffs: trim(r) }))
     }
 
     pub fn modulo(&self, modulus: &PolyFp) -> PyResult<PolyFp> {
@@ -148,7 +212,34 @@ impl PolyFp {
             a = b;
             b = r;
         }
-        if a.is_zero() { Ok(a) } else { a.monic() }
+        if a.is_zero() {
+            Ok(a)
+        } else {
+            a.monic()
+        }
+    }
+
+    pub fn egcd(&self, other: &PolyFp) -> PyResult<(PolyFp, PolyFp, PolyFp)> {
+        self.check(other)?;
+        let mut r0 = self.clone();
+        let mut r1 = other.clone();
+        let mut s0 = PolyFp::new(self.p, vec![1])?;
+        let mut s1 = PolyFp::new(self.p, vec![0])?;
+        let mut t0 = PolyFp::new(self.p, vec![0])?;
+        let mut t1 = PolyFp::new(self.p, vec![1])?;
+
+        while !r1.is_zero() {
+            let (q, r) = r0.div_rem(&r1)?;
+            let s = s0.sub(&q.mul(&s1)?)?;
+            let t = t0.sub(&q.mul(&t1)?)?;
+            r0 = r1;
+            r1 = r;
+            s0 = s1;
+            s1 = s;
+            t0 = t1;
+            t1 = t;
+        }
+        Ok((r0, s0, t0))
     }
 
     /// Brute-force irreducibility check for small degrees.
@@ -176,7 +267,10 @@ impl PolyFp {
                     coeffs[i] = x % self.p;
                     x /= self.p;
                 }
-                let g = PolyFp { p: self.p, coeffs: trim(coeffs) };
+                let g = PolyFp {
+                    p: self.p,
+                    coeffs: trim(coeffs),
+                };
                 let (_q, r) = f.div_rem(&g)?;
                 if r.is_zero() {
                     return Ok(false);
@@ -214,7 +308,9 @@ fn add_coeffs(p: u64, a: &[u64], b: &[u64]) -> Vec<u64> {
 }
 
 fn mul_coeffs(p: u64, a: &[u64], b: &[u64]) -> Vec<u64> {
-    if a.is_empty() || b.is_empty() { return vec![]; }
+    if a.is_empty() || b.is_empty() {
+        return vec![];
+    }
     let mut r = vec![0u64; a.len() + b.len() - 1];
     for i in 0..a.len() {
         for j in 0..b.len() {
@@ -224,4 +320,27 @@ fn mul_coeffs(p: u64, a: &[u64], b: &[u64]) -> Vec<u64> {
         }
     }
     r
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn poly_egcd_satisfies_bezout_identity() {
+        let a = PolyFp::new(2, vec![1, 0, 1]).unwrap(); // 1 + x^2
+        let b = PolyFp::new(2, vec![1, 1, 0, 1]).unwrap(); // 1 + x + x^3
+        let (g, s, t) = a.egcd(&b).unwrap();
+
+        let lhs = s.mul(&a).unwrap().add(&t.mul(&b).unwrap()).unwrap().monic().unwrap();
+        assert_eq!(lhs, g.monic().unwrap());
+        assert_eq!(g.monic().unwrap().coeffs(), vec![1]);
+    }
+
+    #[test]
+    fn poly_gcd_matches_expected_common_factor() {
+        let a = PolyFp::new(2, vec![0, 1, 1]).unwrap(); // x + x^2
+        let b = PolyFp::new(2, vec![0, 1]).unwrap(); // x
+        assert_eq!(a.gcd(&b).unwrap().coeffs(), vec![0, 1]);
+    }
 }

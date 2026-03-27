@@ -1,5 +1,5 @@
-use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 
 use std::collections::HashSet;
 
@@ -17,10 +17,14 @@ pub struct Sn {
 }
 
 fn is_bijection(n: usize, images: &[usize]) -> bool {
-    if images.len() != n { return false; }
+    if images.len() != n {
+        return false;
+    }
     let mut seen = vec![false; n];
     for &x in images {
-        if x >= n || seen[x] { return false; }
+        if x >= n || seen[x] {
+            return false;
+        }
         seen[x] = true;
     }
     true
@@ -31,14 +35,19 @@ impl Perm {
     #[new]
     pub fn new(n: usize, images: Vec<usize>) -> PyResult<Self> {
         if !is_bijection(n, &images) {
-            return Err(PyValueError::new_err("images must be a bijection on 0..n-1"));
+            return Err(PyValueError::new_err(
+                "images must be a bijection on 0..n-1",
+            ));
         }
         Ok(Self { n, images })
     }
 
     #[staticmethod]
     pub fn identity(n: usize) -> Self {
-        Self { n, images: (0..n).collect() }
+        Self {
+            n,
+            images: (0..n).collect(),
+        }
     }
 
     /// cycle given as list like [0,1,2] meaning (0 1 2)
@@ -48,7 +57,9 @@ impl Perm {
             return Ok(Self::identity(n));
         }
         for &c in &cycle {
-            if c >= n { return Err(PyValueError::new_err("cycle element out of range")); }
+            if c >= n {
+                return Err(PyValueError::new_err("cycle element out of range"));
+            }
         }
         let mut images: Vec<usize> = (0..n).collect();
         for i in 0..cycle.len() {
@@ -59,13 +70,19 @@ impl Perm {
         Ok(Self { n, images })
     }
 
-    pub fn n(&self) -> usize { self.n }
+    pub fn n(&self) -> usize {
+        self.n
+    }
 
-    pub fn as_images(&self) -> Vec<usize> { self.images.clone() }
+    pub fn as_images(&self) -> Vec<usize> {
+        self.images.clone()
+    }
 
     /// Composition p ∘ q: apply q then p. (p.compose(q))(i) = p(q(i))
     pub fn compose(&self, other: &Perm) -> PyResult<Perm> {
-        if self.n != other.n { return Err(PyValueError::new_err("different n")); }
+        if self.n != other.n {
+            return Err(PyValueError::new_err("different n"));
+        }
         let n = self.n;
         let mut img = vec![0usize; n];
         for i in 0..n {
@@ -84,8 +101,12 @@ impl Perm {
     }
 
     pub fn pow(&self, exp: i64) -> PyResult<Perm> {
-        if exp == 0 { return Ok(Perm::identity(self.n)); }
-        if exp < 0 { return self.inv().pow(-exp); }
+        if exp == 0 {
+            return Ok(Perm::identity(self.n));
+        }
+        if exp < 0 {
+            return self.inv().pow(-exp);
+        }
         let mut e = exp as u64;
         let mut result = Perm::identity(self.n);
         let mut base = self.clone();
@@ -106,7 +127,9 @@ impl Perm {
         let mut visited = vec![false; self.n];
         let mut l: u64 = 1;
         for i in 0..self.n {
-            if visited[i] { continue; }
+            if visited[i] {
+                continue;
+            }
             let mut len = 0u64;
             let mut j = i;
             while !visited[j] {
@@ -124,7 +147,9 @@ impl Perm {
     }
 
     // minimal dunders for convenience
-    pub fn __mul__(&self, other: &Perm) -> PyResult<Perm> { self.compose(other) } // p*q = p∘q
+    pub fn __mul__(&self, other: &Perm) -> PyResult<Perm> {
+        self.compose(other)
+    } // p*q = p∘q
 }
 
 #[pymethods]
@@ -132,24 +157,38 @@ impl Sn {
     #[new]
     pub fn new(n: usize) -> PyResult<Self> {
         if n > 8 {
-            return Err(PyValueError::new_err("n too large for brute-force Sn enumeration (use n<=8)"));
+            return Err(PyValueError::new_err(
+                "n too large for brute-force Sn enumeration (use n<=8)",
+            ));
         }
         Ok(Self { n })
     }
 
-    pub fn n(&self) -> usize { self.n }
+    pub fn n(&self) -> usize {
+        self.n
+    }
 
-    pub fn identity(&self) -> Perm { Perm::identity(self.n) }
+    pub fn identity(&self) -> Perm {
+        Perm::identity(self.n)
+    }
 
     pub fn elements(&self, max_size: Option<usize>) -> PyResult<Vec<Perm>> {
         let max = max_size.unwrap_or(5040);
         let mut a: Vec<usize> = (0..self.n).collect();
-        let mut out = vec![Perm { n: self.n, images: a.clone() }];
+        let mut out = vec![Perm {
+            n: self.n,
+            images: a.clone(),
+        }];
         while next_permutation(&mut a) {
             if out.len() >= max {
-                return Err(PyValueError::new_err("too many elements (increase max_size)"));
+                return Err(PyValueError::new_err(
+                    "too many elements (increase max_size)",
+                ));
             }
-            out.push(Perm { n: self.n, images: a.clone() });
+            out.push(Perm {
+                n: self.n,
+                images: a.clone(),
+            });
         }
         Ok(out)
     }
@@ -161,26 +200,44 @@ impl Sn {
     pub fn generated_with_limit(&self, gens: Vec<Perm>, max_size: usize) -> PyResult<Vec<Perm>> {
         let max = max_size;
         for g in &gens {
-            if g.n != self.n { return Err(PyValueError::new_err("generator has different n")); }
+            if g.n != self.n {
+                return Err(PyValueError::new_err("generator has different n"));
+            }
         }
         let id = self.identity();
         let mut set: HashSet<Perm> = HashSet::new();
-        set.insert(id.clone());
-        for g in &gens { set.insert(g.clone()); set.insert(g.inv()); }
+        let mut queue: Vec<Perm> = Vec::new();
+        let mut closure_gens: Vec<Perm> = Vec::new();
 
-        let mut changed = true;
-        while changed {
-            changed = false;
-            let elems: Vec<Perm> = set.iter().cloned().collect();
-            for a in &elems {
-                for g in &gens {
-                    let ag = a.compose(g)?;
-                    if set.insert(ag) { changed = true; }
-                    let ga = g.compose(a)?;
-                    if set.insert(ga) { changed = true; }
+        set.insert(id.clone());
+        queue.push(id);
+        for g in &gens {
+            let g_inv = g.inv();
+            closure_gens.push(g.clone());
+            closure_gens.push(g_inv.clone());
+            if set.insert(g.clone()) {
+                queue.push(g.clone());
+            }
+            if set.insert(g_inv.clone()) {
+                queue.push(g_inv);
+            }
+        }
+
+        while let Some(a) = queue.pop() {
+            for g in &closure_gens {
+                let ag = a.compose(g)?;
+                if set.insert(ag.clone()) {
+                    if set.len() > max {
+                        return Err(PyValueError::new_err("generated subgroup exceeds max_size"));
+                    }
+                    queue.push(ag);
                 }
-                if set.len() > max {
-                    return Err(PyValueError::new_err("generated subgroup exceeds max_size"));
+                let ga = g.compose(&a)?;
+                if set.insert(ga.clone()) {
+                    if set.len() > max {
+                        return Err(PyValueError::new_err("generated subgroup exceeds max_size"));
+                    }
+                    queue.push(ga);
                 }
             }
         }
@@ -193,25 +250,69 @@ impl Sn {
 }
 
 fn gcd(mut a: u64, mut b: u64) -> u64 {
-    while b != 0 { let t = a % b; a = b; b = t; }
+    while b != 0 {
+        let t = a % b;
+        a = b;
+        b = t;
+    }
     a
 }
 fn lcm(a: u64, b: u64) -> u64 {
-    if a == 0 || b == 0 { 0 } else { (a / gcd(a,b)) * b }
+    if a == 0 || b == 0 {
+        0
+    } else {
+        (a / gcd(a, b)) * b
+    }
 }
 
 // lexicographic next_permutation for Vec<usize>
 fn next_permutation(a: &mut [usize]) -> bool {
     let n = a.len();
-    if n < 2 { return false; }
+    if n < 2 {
+        return false;
+    }
     let mut i = n - 2;
-    while a[i] >= a[i+1] {
-        if i == 0 { a.reverse(); return false; }
+    while a[i] >= a[i + 1] {
+        if i == 0 {
+            a.reverse();
+            return false;
+        }
         i -= 1;
     }
     let mut j = n - 1;
-    while a[j] <= a[i] { j -= 1; }
+    while a[j] <= a[i] {
+        j -= 1;
+    }
     a.swap(i, j);
-    a[i+1..].reverse();
+    a[i + 1..].reverse();
     true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn generated_subgroup_contains_inverse_words() {
+        let s4 = Sn::new(4).unwrap();
+        let a = Perm::cycle(4, vec![0, 1, 2]).unwrap();
+        let b = Perm::cycle(4, vec![1, 2, 3]).unwrap();
+
+        let subgroup = s4.generated(vec![a.clone(), b.clone()]).unwrap();
+        let subgroup_set: HashSet<Perm> = subgroup.into_iter().collect();
+
+        let target = a.inv().compose(&b).unwrap().compose(&a.inv()).unwrap();
+        assert!(subgroup_set.contains(&target));
+    }
+
+    #[test]
+    fn generated_subgroup_of_adjacent_transpositions_is_s4() {
+        let s4 = Sn::new(4).unwrap();
+        let t01 = Perm::cycle(4, vec![0, 1]).unwrap();
+        let t12 = Perm::cycle(4, vec![1, 2]).unwrap();
+        let t23 = Perm::cycle(4, vec![2, 3]).unwrap();
+
+        let subgroup = s4.generated(vec![t01, t12, t23]).unwrap();
+        assert_eq!(subgroup.len(), 24);
+    }
 }
