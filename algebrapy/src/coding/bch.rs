@@ -807,6 +807,46 @@ mod tests {
     }
 
     #[test]
+    fn hamming_decoder_corrects_all_single_bit_errors_exhaustively() {
+        let code = BinaryBchCode::new(3, vec![1, 1, 0, 1], 3).unwrap();
+        for mask in 0usize..(1 << code.dimension()) {
+            let msg = bits_from_mask(mask, code.dimension());
+            let codeword = code.encode_systematic(msg.clone()).unwrap();
+            for pos in 0..(code.length() as usize) {
+                let mut received = codeword.clone();
+                received[pos] ^= 1;
+                assert_eq!(code.decode(received.clone()).unwrap(), codeword);
+                assert_eq!(code.decode_systematic_message(received).unwrap(), msg);
+            }
+        }
+    }
+
+    #[test]
+    fn shortened_bch_decoding_matches_full_length_padding() {
+        let code = BinaryBchCode::new(4, vec![1, 1, 0, 0, 1], 5).unwrap();
+        let shorten_by = 3usize;
+        let k_short = code.shortened_parameters(shorten_by).unwrap().1;
+        for mask in 0usize..(1 << k_short) {
+            let msg = bits_from_mask(mask, k_short);
+            let short_codeword = code.encode_shortened_systematic(msg.clone(), shorten_by).unwrap();
+
+            let mut short_received = short_codeword.clone();
+            short_received[0] ^= 1;
+            short_received[5] ^= 1;
+
+            let short_decoded = code
+                .decode_shortened_systematic_message(short_received.clone(), shorten_by)
+                .unwrap();
+
+            let mut padded_received = short_received;
+            padded_received.resize(code.length() as usize, 0);
+            let full_decoded = code.decode_systematic_message(padded_received).unwrap();
+            assert_eq!(short_decoded, msg);
+            assert_eq!(full_decoded[..k_short], msg);
+        }
+    }
+
+    #[test]
     fn bch_15_7_5_decoder_corrects_two_errors() {
         let code = BinaryBchCode::new(4, vec![1, 1, 0, 0, 1], 5).unwrap();
         let msg = vec![1, 0, 1, 1, 0, 1, 1];

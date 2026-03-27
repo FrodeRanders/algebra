@@ -343,4 +343,42 @@ mod tests {
         let b = PolyFp::new(2, vec![0, 1]).unwrap(); // x
         assert_eq!(a.gcd(&b).unwrap().coeffs(), vec![0, 1]);
     }
+
+    #[test]
+    fn poly_div_rem_identity_holds_over_small_inputs() {
+        for p in [2_u64, 3] {
+            for a0 in 0..p {
+                for a1 in 0..p {
+                    for a2 in 0..p {
+                        for a3 in 0..p {
+                            let a = PolyFp::new(
+                                p,
+                                vec![a0 as i128, a1 as i128, a2 as i128, a3 as i128],
+                            )
+                            .unwrap();
+                            for b0 in 0..p {
+                                for b1 in 0..p {
+                                    for b2 in 0..p {
+                                        let b = PolyFp::new(
+                                            p,
+                                            vec![b0 as i128, b1 as i128, b2 as i128],
+                                        )
+                                        .unwrap();
+                                        if b.is_zero() {
+                                            continue;
+                                        }
+                                        let (q, r) = a.div_rem(&b).unwrap();
+                                        let recomposed =
+                                            q.mul(&b).unwrap().add(&r).unwrap();
+                                        assert_eq!(recomposed, a, "p={p}, a={:?}, b={:?}", a, b);
+                                        assert!(r.is_zero() || r.degree() < b.degree());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

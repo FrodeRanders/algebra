@@ -544,4 +544,50 @@ mod tests {
         let codeword = rs.encode_systematic(msg).unwrap();
         assert!(rs.syndromes(codeword).unwrap().iter().all(FqElem::is_zero));
     }
+
+    #[test]
+    fn rs_decodes_all_two_symbol_errors_for_representative_messages() {
+        let rs = gf8();
+        let fq = rs.field().unwrap();
+        let elements = fq.elements(Some(16)).unwrap();
+        let n = rs.length() as usize;
+        let messages = vec![
+            vec![fq.zero(), fq.zero(), fq.zero()],
+            vec![fq.one(), fq.zero(), fq.zero()],
+            vec![fq.zero(), fq.one(), fq.zero()],
+            vec![fq.zero(), fq.zero(), fq.one()],
+            vec![fq.elem(vec![0, 1]).unwrap(), fq.zero(), fq.one()],
+            vec![fq.elem(vec![1, 1]).unwrap(), fq.elem(vec![1, 0, 1]).unwrap(), fq.zero()],
+            vec![fq.elem(vec![1]).unwrap(), fq.elem(vec![0, 1]).unwrap(), fq.elem(vec![1, 1]).unwrap()],
+            vec![fq.elem(vec![1, 1, 1]).unwrap(), fq.elem(vec![1, 0]).unwrap(), fq.elem(vec![0, 0, 1]).unwrap()],
+        ];
+
+        for msg in messages {
+            let codeword = rs.encode_systematic(msg.clone()).unwrap();
+
+            for i in 0..n {
+                for j in (i + 1)..n {
+                    for e1 in &elements {
+                        if e1.is_zero() {
+                            continue;
+                        }
+                        for e2 in &elements {
+                            if e2.is_zero() {
+                                continue;
+                            }
+                            let mut received = codeword.clone();
+                            received[i] = fq.add(&received[i], e1).unwrap();
+                            received[j] = fq.add(&received[j], e2).unwrap();
+                            let decoded = rs.decode(received).unwrap();
+                            let recovered = rs.extract_systematic_message(decoded).unwrap();
+                            assert_eq!(
+                                recovered.iter().map(FqElem::coeffs).collect::<Vec<_>>(),
+                                msg.iter().map(FqElem::coeffs).collect::<Vec<_>>()
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
