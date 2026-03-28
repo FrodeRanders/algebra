@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 
 use crate::arith::egcd::inv_mod_i128;
 
+/// A polynomial over `F_p` stored from low degree to high degree.
 #[pyclass(frozen, from_py_object)]
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct PolyFp {
@@ -51,6 +52,7 @@ fn inv_mod_p(a: u64, p: u64) -> PyResult<u64> {
 #[pymethods]
 impl PolyFp {
     #[new]
+    /// Construct a polynomial over `F_p`.
     pub fn new(p: u64, coeffs: Vec<i128>) -> PyResult<Self> {
         if p < 2 {
             return Err(PyValueError::new_err("p must be >= 2"));
@@ -61,14 +63,17 @@ impl PolyFp {
         })
     }
 
+    /// Return the base characteristic.
     pub fn p(&self) -> u64 {
         self.p
     }
 
+    /// Return the coefficient list.
     pub fn coeffs(&self) -> Vec<u64> {
         self.coeffs.clone()
     }
 
+    /// Return the degree, or `-1` for the zero polynomial.
     pub fn degree(&self) -> i64 {
         if self.coeffs.is_empty() {
             -1
@@ -77,14 +82,17 @@ impl PolyFp {
         }
     }
 
+    /// Return whether the polynomial is zero.
     pub fn is_zero(&self) -> bool {
         self.coeffs.is_empty()
     }
 
+    /// Return whether the polynomial is the constant polynomial `1`.
     pub fn is_one(&self) -> bool {
         self.coeffs.len() == 1 && self.coeffs[0] == 1
     }
 
+    /// Return the monic normalization of this polynomial.
     pub fn monic(&self) -> PyResult<PolyFp> {
         if self.is_zero() {
             return Err(PyValueError::new_err(
@@ -96,6 +104,7 @@ impl PolyFp {
         Ok(self.scale(inv))
     }
 
+    /// Return the sum of two polynomials.
     pub fn add(&self, other: &PolyFp) -> PyResult<PolyFp> {
         self.check(other)?;
         Ok(PolyFp {
@@ -104,6 +113,7 @@ impl PolyFp {
         })
     }
 
+    /// Return the additive inverse.
     pub fn neg(&self) -> PolyFp {
         let p = self.p;
         let coeffs = self
@@ -117,10 +127,12 @@ impl PolyFp {
         }
     }
 
+    /// Return the difference of two polynomials.
     pub fn sub(&self, other: &PolyFp) -> PyResult<PolyFp> {
         self.add(&other.neg())
     }
 
+    /// Return the product of two polynomials.
     pub fn mul(&self, other: &PolyFp) -> PyResult<PolyFp> {
         self.check(other)?;
         Ok(PolyFp {
@@ -129,6 +141,7 @@ impl PolyFp {
         })
     }
 
+    /// Multiply by a scalar modulo `p`.
     pub fn scale(&self, k: u64) -> PolyFp {
         let p = self.p;
         if k % p == 0 || self.is_zero() {
@@ -198,11 +211,13 @@ impl PolyFp {
         Ok((PolyFp { p, coeffs: trim(q) }, PolyFp { p, coeffs: trim(r) }))
     }
 
+    /// Return the remainder after division by `modulus`.
     pub fn modulo(&self, modulus: &PolyFp) -> PyResult<PolyFp> {
         let (_q, r) = self.div_rem(modulus)?;
         Ok(r)
     }
 
+    /// Return the monic greatest common divisor.
     pub fn gcd(&self, other: &PolyFp) -> PyResult<PolyFp> {
         self.check(other)?;
         let mut a = self.clone();
@@ -215,6 +230,7 @@ impl PolyFp {
         if a.is_zero() { Ok(a) } else { a.monic() }
     }
 
+    /// Return `(g, s, t)` such that `g = s*self + t*other`.
     pub fn egcd(&self, other: &PolyFp) -> PyResult<(PolyFp, PolyFp, PolyFp)> {
         self.check(other)?;
         let mut r0 = self.clone();
@@ -284,6 +300,7 @@ impl PolyFp {
         }
     }
 
+    /// Return a compact debug-style representation.
     pub fn __repr__(&self) -> String {
         if self.coeffs.is_empty() {
             return format!("0 over F{}", self.p);

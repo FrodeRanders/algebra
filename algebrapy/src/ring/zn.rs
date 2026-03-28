@@ -4,12 +4,14 @@ use pyo3::{Py, PyAny};
 
 use crate::arith::egcd::inv_mod_i128;
 
+/// The residue ring `Z/nZ`.
 #[pyclass(frozen, from_py_object)]
 #[derive(Clone, Debug)]
 pub struct Zn {
     n: u64,
 }
 
+/// An element of a fixed residue ring `Z/nZ`.
 #[pyclass(frozen, from_py_object)]
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ZnElem {
@@ -38,6 +40,7 @@ fn gcd_u64(mut a: u64, mut b: u64) -> u64 {
 #[pymethods]
 impl Zn {
     #[new]
+    /// Construct the ring modulo `n`.
     pub fn new(n: u64) -> PyResult<Self> {
         if n < 2 {
             return Err(PyValueError::new_err("n must be >= 2 for Zn(n)"));
@@ -45,14 +48,17 @@ impl Zn {
         Ok(Self { n })
     }
 
+    /// Return the modulus `n`.
     pub fn modulus(&self) -> u64 {
         self.n
     }
 
+    /// Return the additive identity.
     pub fn zero(&self) -> ZnElem {
         ZnElem { n: self.n, v: 0 }
     }
 
+    /// Return the multiplicative identity.
     pub fn one(&self) -> ZnElem {
         ZnElem {
             n: self.n,
@@ -60,6 +66,7 @@ impl Zn {
         }
     }
 
+    /// Convert an integer to its canonical residue class modulo `n`.
     pub fn elem(&self, k: i128) -> ZnElem {
         ZnElem {
             n: self.n,
@@ -67,10 +74,12 @@ impl Zn {
         }
     }
 
+    /// Enumerate all residue classes.
     pub fn elements(&self) -> Vec<ZnElem> {
         (0..self.n).map(|v| ZnElem { n: self.n, v }).collect()
     }
 
+    /// Enumerate all units of `Z/nZ`.
     pub fn units(&self) -> Vec<ZnElem> {
         (0..self.n)
             .filter(|&v| gcd_u64(v, self.n) == 1)
@@ -78,11 +87,13 @@ impl Zn {
             .collect()
     }
 
+    /// Return whether `a` is invertible.
     pub fn is_unit(&self, a: &ZnElem) -> PyResult<bool> {
         self.check(a)?;
         Ok(gcd_u64(a.v, self.n) == 1)
     }
 
+    /// Return `a + b`.
     pub fn add(&self, a: &ZnElem, b: &ZnElem) -> PyResult<ZnElem> {
         self.check(a)?;
         self.check(b)?;
@@ -92,6 +103,7 @@ impl Zn {
         })
     }
 
+    /// Return `-a`.
     pub fn neg(&self, a: &ZnElem) -> PyResult<ZnElem> {
         self.check(a)?;
         Ok(if a.v == 0 {
@@ -104,10 +116,12 @@ impl Zn {
         })
     }
 
+    /// Return `a - b`.
     pub fn sub(&self, a: &ZnElem, b: &ZnElem) -> PyResult<ZnElem> {
         self.add(a, &self.neg(b)?)
     }
 
+    /// Return `a * b`.
     pub fn mul(&self, a: &ZnElem, b: &ZnElem) -> PyResult<ZnElem> {
         self.check(a)?;
         self.check(b)?;
@@ -118,6 +132,7 @@ impl Zn {
         })
     }
 
+    /// Return the multiplicative inverse of `a` when it exists.
     pub fn inv(&self, a: &ZnElem) -> PyResult<ZnElem> {
         self.check(a)?;
         if a.v == 0 {
@@ -133,6 +148,7 @@ impl Zn {
         })
     }
 
+    /// Return `a^e`, allowing negative exponents for units.
     pub fn pow(&self, a: &ZnElem, e: i128) -> PyResult<ZnElem> {
         self.check(a)?;
         if e == 0 {
@@ -174,30 +190,37 @@ impl Zn {
 
 #[pymethods]
 impl ZnElem {
+    /// Return the canonical representative in `0..n-1`.
     pub fn value(&self) -> u64 {
         self.v
     }
 
+    /// Return whether this element is zero.
     pub fn is_zero(&self) -> bool {
         self.v == 0
     }
 
+    /// Return whether this element is a unit.
     pub fn is_unit(&self) -> bool {
         gcd_u64(self.v, self.n) == 1
     }
 
+    /// Return `False` only for zero.
     pub fn __bool__(&self) -> bool {
         self.v != 0
     }
 
+    /// Return a human-readable representation.
     pub fn __repr__(&self) -> String {
         format!("{} (mod {})", self.v, self.n)
     }
 
+    /// Convert to the canonical integer representative.
     pub fn __int__(&self) -> u64 {
         self.v
     }
 
+    /// Support `==` and `!=` for elements with the same modulus.
     pub fn __richcmp__(&self, other: &ZnElem, op: pyo3::basic::CompareOp) -> PyResult<bool> {
         if self.n != other.n {
             return Ok(false);
@@ -266,6 +289,7 @@ impl ZnElem {
         Ok(result)
     }
 
+    /// Return the multiplicative inverse when it exists.
     pub fn inv(&self) -> PyResult<ZnElem> {
         Ok(ZnElem {
             n: self.n,
@@ -273,6 +297,7 @@ impl ZnElem {
         })
     }
 
+    /// Return the additive inverse.
     pub fn __neg__(&self) -> ZnElem {
         if self.v == 0 {
             self.clone()
@@ -284,6 +309,7 @@ impl ZnElem {
         }
     }
 
+    /// Add two ring elements.
     pub fn __add__(&self, other: &ZnElem) -> PyResult<ZnElem> {
         self.check_same_n(other)?;
         Ok(ZnElem {
@@ -292,6 +318,7 @@ impl ZnElem {
         })
     }
 
+    /// Subtract two ring elements.
     pub fn __sub__(&self, other: &ZnElem) -> PyResult<ZnElem> {
         self.check_same_n(other)?;
         let neg = if other.v == 0 { 0 } else { self.n - other.v };
@@ -301,6 +328,7 @@ impl ZnElem {
         })
     }
 
+    /// Multiply two ring elements.
     pub fn __mul__(&self, other: &ZnElem) -> PyResult<ZnElem> {
         self.check_same_n(other)?;
         Ok(ZnElem {
@@ -309,6 +337,7 @@ impl ZnElem {
         })
     }
 
+    /// Divide by an invertible element.
     pub fn __truediv__(&self, other: &ZnElem) -> PyResult<ZnElem> {
         self.check_same_n(other)?;
         let inv = self.inv_v(other.v)?;
@@ -318,6 +347,7 @@ impl ZnElem {
         })
     }
 
+    /// Support `a ** exp` and `pow(a, exp)`.
     pub fn __pow__(&self, exp: i128, modulo: Option<Py<PyAny>>) -> PyResult<ZnElem> {
         if modulo.is_some() {
             return Err(PyValueError::new_err(
@@ -330,6 +360,7 @@ impl ZnElem {
         })
     }
 
+    /// Support `int + ZnElem`.
     pub fn __radd__(&self, other: i128) -> PyResult<ZnElem> {
         let ov = self.canon_int(other);
         Ok(ZnElem {
@@ -338,6 +369,7 @@ impl ZnElem {
         })
     }
 
+    /// Support `int - ZnElem`.
     pub fn __rsub__(&self, other: i128) -> PyResult<ZnElem> {
         let ov = self.canon_int(other);
         let neg_self = if self.v == 0 { 0 } else { self.n - self.v };
@@ -347,6 +379,7 @@ impl ZnElem {
         })
     }
 
+    /// Support `int * ZnElem`.
     pub fn __rmul__(&self, other: i128) -> PyResult<ZnElem> {
         let ov = self.canon_int(other);
         Ok(ZnElem {
@@ -355,6 +388,7 @@ impl ZnElem {
         })
     }
 
+    /// Support `int / ZnElem` inside `Z/nZ`.
     pub fn __rtruediv__(&self, other: i128) -> PyResult<ZnElem> {
         let ov = self.canon_int(other);
         let inv = self.inv_v(self.v)?;

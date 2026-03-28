@@ -5,12 +5,14 @@ use std::collections::HashMap;
 use crate::arith::egcd::inv_mod_i128;
 use crate::arith::prime::is_prime_u64;
 
+/// The prime field `GF(p)`.
 #[pyclass(frozen, from_py_object)]
 #[derive(Clone, Debug)]
 pub struct Fp {
     p: u64,
 }
 
+/// An element of a fixed prime field `GF(p)`.
 #[pyclass(frozen, from_py_object)]
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct FpElem {
@@ -38,13 +40,16 @@ impl Fp {
         Ok(Self { p })
     }
 
+    /// Return the prime modulus `p`.
     pub fn modulus(&self) -> u64 {
         self.p
     }
 
+    /// Return the additive identity.
     pub fn zero(&self) -> FpElem {
         FpElem { p: self.p, v: 0 }
     }
+    /// Return the multiplicative identity.
     pub fn one(&self) -> FpElem {
         FpElem {
             p: self.p,
@@ -70,6 +75,7 @@ impl Fp {
         (1..self.p).map(|v| FpElem { p: self.p, v }).collect()
     }
 
+    /// Return `a + b`.
     pub fn add(&self, a: &FpElem, b: &FpElem) -> PyResult<FpElem> {
         self.check(a)?;
         self.check(b)?;
@@ -79,6 +85,7 @@ impl Fp {
         })
     }
 
+    /// Return `-a`.
     pub fn neg(&self, a: &FpElem) -> PyResult<FpElem> {
         self.check(a)?;
         Ok(if a.v == 0 {
@@ -91,10 +98,12 @@ impl Fp {
         })
     }
 
+    /// Return `a - b`.
     pub fn sub(&self, a: &FpElem, b: &FpElem) -> PyResult<FpElem> {
         self.add(a, &self.neg(b)?)
     }
 
+    /// Return `a * b`.
     pub fn mul(&self, a: &FpElem, b: &FpElem) -> PyResult<FpElem> {
         self.check(a)?;
         self.check(b)?;
@@ -269,18 +278,22 @@ impl Fp {
 
 #[pymethods]
 impl FpElem {
+    /// Return the canonical integer representative.
     pub fn value(&self) -> u64 {
         self.v
     }
 
+    /// Return a human-readable representation.
     pub fn __repr__(&self) -> String {
         format!("{} (mod {})", self.v, self.p)
     }
 
+    /// Convert to the canonical integer representative.
     pub fn __int__(&self) -> u64 {
         self.v
     }
 
+    /// Support `==` and `!=` for elements from the same field.
     pub fn __richcmp__(&self, other: &FpElem, op: pyo3::basic::CompareOp) -> PyResult<bool> {
         if self.p != other.p {
             return Ok(false);
@@ -359,6 +372,7 @@ impl FpElem {
         Ok(result)
     }
 
+    /// Return the multiplicative order of this nonzero element.
     pub fn mul_order(&self) -> PyResult<u64> {
         if self.v == 0 {
             return Err(PyValueError::new_err(
@@ -380,7 +394,7 @@ impl FpElem {
         ))
     }
 
-    // ---------- nice API ----------
+    /// Return the multiplicative inverse of this nonzero element.
     pub fn inv(&self) -> PyResult<FpElem> {
         Ok(FpElem {
             p: self.p,
@@ -388,7 +402,7 @@ impl FpElem {
         })
     }
 
-    // ---------- operator overloading ----------
+    /// Return the additive inverse.
     pub fn __neg__(&self) -> FpElem {
         if self.v == 0 {
             self.clone()
@@ -400,6 +414,7 @@ impl FpElem {
         }
     }
 
+    /// Add two field elements.
     pub fn __add__(&self, other: &FpElem) -> PyResult<FpElem> {
         self.check_same_p(other)?;
         Ok(FpElem {
@@ -408,6 +423,7 @@ impl FpElem {
         })
     }
 
+    /// Subtract two field elements.
     pub fn __sub__(&self, other: &FpElem) -> PyResult<FpElem> {
         self.check_same_p(other)?;
         let neg = if other.v == 0 { 0 } else { self.p - other.v };
@@ -417,6 +433,7 @@ impl FpElem {
         })
     }
 
+    /// Multiply two field elements.
     pub fn __mul__(&self, other: &FpElem) -> PyResult<FpElem> {
         self.check_same_p(other)?;
         Ok(FpElem {
@@ -425,6 +442,7 @@ impl FpElem {
         })
     }
 
+    /// Divide by another nonzero field element.
     pub fn __truediv__(&self, other: &FpElem) -> PyResult<FpElem> {
         self.check_same_p(other)?;
         let inv = self.inv_v(other.v)?;
@@ -447,7 +465,7 @@ impl FpElem {
         })
     }
 
-    // ---------- mixed int ops (int OP elem) ----------
+    /// Support `int + FpElem`.
     pub fn __radd__(&self, other: i128) -> PyResult<FpElem> {
         let ov = self.canon_int(other);
         Ok(FpElem {
@@ -456,6 +474,7 @@ impl FpElem {
         })
     }
 
+    /// Support `int - FpElem`.
     pub fn __rsub__(&self, other: i128) -> PyResult<FpElem> {
         let ov = self.canon_int(other);
         let neg_self = if self.v == 0 { 0 } else { self.p - self.v };
@@ -465,6 +484,7 @@ impl FpElem {
         })
     }
 
+    /// Support `int * FpElem`.
     pub fn __rmul__(&self, other: i128) -> PyResult<FpElem> {
         let ov = self.canon_int(other);
         Ok(FpElem {
@@ -473,6 +493,7 @@ impl FpElem {
         })
     }
 
+    /// Support `int / FpElem` inside `GF(p)`.
     pub fn __rtruediv__(&self, other: i128) -> PyResult<FpElem> {
         let ov = self.canon_int(other);
         let inv = self.inv_v(self.v)?;

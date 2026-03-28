@@ -4,6 +4,7 @@ use pyo3::{Py, PyAny};
 
 use super::poly_fp::PolyFp;
 
+/// The extension field `GF(p^k)` represented as `F_p[x] / (f)`.
 #[pyclass(frozen, from_py_object)]
 #[derive(Clone, Debug)]
 pub struct Fq {
@@ -12,6 +13,7 @@ pub struct Fq {
     k: usize,        // degree(modulus)
 }
 
+/// An element of a fixed extension field `GF(p^k)`.
 #[pyclass(frozen, from_py_object)]
 #[derive(Clone, Debug)]
 pub struct FqElem {
@@ -129,21 +131,26 @@ impl Fq {
         })
     }
 
+    /// Return the base characteristic.
     pub fn p(&self) -> u64 {
         self.p
     }
+    /// Return the extension degree.
     pub fn degree(&self) -> usize {
         self.k
     }
 
+    /// Return the field size `p^k`.
     pub fn size(&self) -> u64 {
         self.p.pow(self.k as u32)
     }
 
+    /// Return the modulus polynomial coefficients.
     pub fn modulus_coeffs(&self) -> Vec<u64> {
         self.modulus.coeffs()
     }
 
+    /// Create an element from polynomial coefficients and reduce modulo the field modulus.
     pub fn elem(&self, coeffs: Vec<i128>) -> PyResult<FqElem> {
         let p = self.p as i128;
         let mut c: Vec<u64> = coeffs
@@ -165,6 +172,7 @@ impl Fq {
         })
     }
 
+    /// Return the additive identity.
     pub fn zero(&self) -> FqElem {
         FqElem {
             p: self.p,
@@ -173,6 +181,7 @@ impl Fq {
         }
     }
 
+    /// Return the multiplicative identity.
     pub fn one(&self) -> FqElem {
         FqElem {
             p: self.p,
@@ -181,6 +190,7 @@ impl Fq {
         }
     }
 
+    /// Return `a + b`.
     pub fn add(&self, a: &FqElem, b: &FqElem) -> PyResult<FqElem> {
         self.check(a)?;
         self.check(b)?;
@@ -191,6 +201,7 @@ impl Fq {
         })
     }
 
+    /// Return `-a`.
     pub fn neg(&self, a: &FqElem) -> PyResult<FqElem> {
         self.check(a)?;
         Ok(FqElem {
@@ -200,10 +211,12 @@ impl Fq {
         })
     }
 
+    /// Return `a - b`.
     pub fn sub(&self, a: &FqElem, b: &FqElem) -> PyResult<FqElem> {
         self.add(a, &self.neg(b)?)
     }
 
+    /// Return `a * b`, reduced modulo the field modulus.
     pub fn mul(&self, a: &FqElem, b: &FqElem) -> PyResult<FqElem> {
         self.check(a)?;
         self.check(b)?;
@@ -216,6 +229,7 @@ impl Fq {
         })
     }
 
+    /// Return the multiplicative order of a nonzero element.
     pub fn mul_order(&self, a: &FqElem) -> PyResult<u64> {
         self.check(a)?;
         if a.coeffs.is_empty() {
@@ -239,6 +253,7 @@ impl Fq {
         ))
     }
 
+    /// Return the multiplicative inverse of a nonzero element.
     pub fn inv(&self, a: &FqElem) -> PyResult<FqElem> {
         self.check(a)?;
         if a.coeffs.is_empty() {
@@ -259,6 +274,7 @@ impl Fq {
         })
     }
 
+    /// Return `a^exp`, allowing negative exponents for nonzero elements.
     pub fn pow(&self, a: &FqElem, exp: i128) -> PyResult<FqElem> {
         self.check(a)?;
         if exp == 0 {
@@ -364,18 +380,22 @@ impl Fq {
 
 #[pymethods]
 impl FqElem {
+    /// Return the reduced coefficient vector.
     pub fn coeffs(&self) -> Vec<u64> {
         self.coeffs.clone()
     }
 
+    /// Return whether this element is zero.
     pub fn is_zero(&self) -> bool {
         self.coeffs.is_empty()
     }
 
+    /// Return `False` only for zero.
     pub fn __bool__(&self) -> bool {
         !self.coeffs.is_empty()
     }
 
+    /// Return a polynomial-style representation in `GF(p^k)`.
     pub fn __repr__(&self) -> String {
         let k = self.modulus_coeffs.len() - 1;
         if self.coeffs.is_empty() {
@@ -404,6 +424,7 @@ impl FqElem {
         format!("{} in GF({}^{})", terms.join(" + "), self.p, k)
     }
 
+    /// Support `==` and `!=` for elements from the same field.
     pub fn __richcmp__(&self, other: &FqElem, op: pyo3::basic::CompareOp) -> PyResult<bool> {
         let eq = self.p == other.p
             && self.modulus_coeffs == other.modulus_coeffs
@@ -488,6 +509,7 @@ impl FqElem {
         Ok(result)
     }
 
+    /// Return the field trace down to the prime subfield.
     pub fn trace(&self) -> PyResult<FqElem> {
         // Tr(a) = sum_{i=0..k-1} a^(p^i)
         let k = self.modulus_coeffs.len() - 1;
@@ -500,6 +522,7 @@ impl FqElem {
         Ok(acc)
     }
 
+    /// Return the field norm down to the prime subfield.
     pub fn norm(&self) -> PyResult<FqElem> {
         // N(a) = product_{i=0..k-1} a^(p^i)
         let k = self.modulus_coeffs.len() - 1;
@@ -512,12 +535,12 @@ impl FqElem {
         Ok(acc)
     }
 
-    // ---------- nice API ----------
+    /// Return the multiplicative inverse of this nonzero element.
     pub fn inv(&self) -> PyResult<FqElem> {
         self.inv_internal()
     }
 
-    // ---------- dunders ----------
+    /// Return the additive inverse.
     pub fn __neg__(&self) -> FqElem {
         let p = self.p;
         let coeffs = trim(
@@ -529,11 +552,13 @@ impl FqElem {
         self.make_elem(coeffs)
     }
 
+    /// Add two extension-field elements.
     pub fn __add__(&self, other: &FqElem) -> PyResult<FqElem> {
         self.check_same_parent(other)?;
         Ok(self.make_elem(poly_add(self.p, &self.coeffs, &other.coeffs)))
     }
 
+    /// Subtract two extension-field elements.
     pub fn __sub__(&self, other: &FqElem) -> PyResult<FqElem> {
         self.check_same_parent(other)?;
         Ok(self.make_elem(poly_add(
@@ -543,12 +568,14 @@ impl FqElem {
         )))
     }
 
+    /// Multiply two extension-field elements.
     pub fn __mul__(&self, other: &FqElem) -> PyResult<FqElem> {
         self.check_same_parent(other)?;
         let prod = poly_mul(self.p, &self.coeffs, &other.coeffs);
         self.reduce(prod)
     }
 
+    /// Divide by another nonzero extension-field element.
     pub fn __truediv__(&self, other: &FqElem) -> PyResult<FqElem> {
         self.check_same_parent(other)?;
         let inv = other.inv_internal()?;
@@ -565,22 +592,25 @@ impl FqElem {
         self.pow_internal(exp)
     }
 
-    // ---------- mixed-int ops ----------
+    /// Support `int + FqElem`.
     pub fn __radd__(&self, other: i128) -> PyResult<FqElem> {
         let c = self.canon_int(other);
         self.__add__(&self.make_elem(vec![c]))
     }
 
+    /// Support `int - FqElem`.
     pub fn __rsub__(&self, other: i128) -> PyResult<FqElem> {
         let c = self.canon_int(other);
         self.make_elem(vec![c]).__sub__(self)
     }
 
+    /// Support `int * FqElem`.
     pub fn __rmul__(&self, other: i128) -> PyResult<FqElem> {
         let c = self.canon_int(other);
         self.__mul__(&self.make_elem(vec![c]))
     }
 
+    /// Support `int / FqElem`.
     pub fn __rtruediv__(&self, other: i128) -> PyResult<FqElem> {
         let c = self.canon_int(other);
         self.make_elem(vec![c]).__truediv__(self)
