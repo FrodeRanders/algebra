@@ -117,6 +117,22 @@ print("decoded message =", rs.decode_message(received))
 
 There is also a runnable example in [`play/reed_solomon_demo.py`](/Users/froran/Projects/gautelis/algebra/play/reed_solomon_demo.py).
 
+## CD-style scratch demo
+
+Compact discs use a more elaborate Reed-Solomon-based pipeline called CIRC, but the essential idea can be demonstrated with the current codebase: interleaving spreads a localized burst error across several codewords so each individual Reed-Solomon decoder only sees a small number of symbol errors.
+
+The toy demo in [`play/reed_solomon_cd_scratch_demo.py`](/Users/froran/Projects/gautelis/algebra/play/reed_solomon_cd_scratch_demo.py) shows exactly that:
+- without interleaving, a short burst damages too many symbols in one codeword and decoding fails
+- with interleaving, the same burst is distributed across several codewords and each one decodes successfully
+
+This is intentionally not a literal CD implementation. Real CD audio/data protection uses:
+- two Reed-Solomon layers rather than one
+- byte-oriented symbols over `GF(2^8)`
+- shortened codes and deeper interleaving
+- additional framing and concealment machinery around the codes
+
+So the demo is best read as "why Reed-Solomon plus interleaving helps with scratches", not as a full simulation of the exact CD standard.
+
 ## Setting up a Python environment
 
 ```terminaloutput
