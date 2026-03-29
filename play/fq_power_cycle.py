@@ -1,9 +1,9 @@
 import algebrapy as alg
 
-f = alg.PolyFp(2, [1, 1, 0, 1])
+f = alg.PolyFp(2, [1, 1, 0, 1])  # coefficients low -> high: 1 + x + x^3
 print("irreducible?", f.is_irreducible())
 
-K = alg.Fq(2, [1, 1, 0, 1])
+K = alg.Fq(2, [1, 1, 0, 1])  # same low -> high convention
 x = K.elem([0, 1])
 print("field size =", K.size())
 for i in range(8):

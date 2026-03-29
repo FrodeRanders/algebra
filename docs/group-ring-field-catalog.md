@@ -2,6 +2,9 @@
 
 This document catalogs the public Python-facing functionality in the algebraic packages exposed by `algebrapy`, grouped by module and class. The descriptions are intentionally short and operational.
 
+Unless otherwise noted, polynomial-style coefficient lists are written from low degree to high degree:
+- `[a0, a1, a2, a3]` means `a0 + a1*x + a2*x^2 + a3*x^3`
+
 ## Group package
 
 ### `group.perm.Perm`
@@ -258,7 +261,7 @@ Represents a polynomial over `F_p` stored as coefficients from low degree to hig
 #### Construction
 
 - `PolyFp(p, coeffs)`:
-  Construct a polynomial over `F_p`. Coefficients are canonicalized modulo `p` and trailing zeros are removed.
+  Construct a polynomial over `F_p`. Coefficients are given low degree to high degree, canonicalized modulo `p`, and trimmed of trailing zeros.
 
 #### Accessors and predicates
 
@@ -310,7 +313,7 @@ Represents an extension field `GF(p^k)` as `F_p[x] / (f)` where `f` is the suppl
 #### Construction
 
 - `Fq(p, modulus_coeffs)`:
-  Construct the extension field using the polynomial with coefficients `modulus_coeffs`. The implementation requires the modulus to have degree at least `1` and to be monic. Intended use assumes the modulus is irreducible.
+  Construct the extension field using the polynomial with coefficients `modulus_coeffs`, listed low degree to high degree. The implementation requires the modulus to have degree at least `1` and to be monic. Intended use assumes the modulus is irreducible.
 
 #### Accessors and constructors
 
@@ -323,7 +326,7 @@ Represents an extension field `GF(p^k)` as `F_p[x] / (f)` where `f` is the suppl
 - `modulus_coeffs()`:
   Return the modulus polynomial coefficients.
 - `elem(coeffs)`:
-  Construct a field element from polynomial coefficients and reduce it modulo the field modulus.
+  Construct a field element from polynomial coefficients listed low degree to high degree, then reduce it modulo the field modulus.
 - `zero()`:
   Return the additive identity.
 - `one()`:

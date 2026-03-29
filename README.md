@@ -24,14 +24,19 @@ For a method-by-method catalog of the algebraic APIs, see [`docs/group-ring-fiel
 
 ## Example usage
 
+Coefficient convention for `PolyFp`, `Fq`, and related coding constructors:
+- coefficient lists are written low degree to high degree
+- `[a0, a1, a2, a3]` means `a0 + a1*x + a2*x^2 + a3*x^3`
+
 ```python
 import algebrapy as alg
 
 # GF(7) - prime field
 a = alg.Fp(7).elem(3)    # 3 (mod 7)
 
-# GF(2^3) - extension field with irreducible polynomial 1 + x + x^3
-K = alg.Fq(2, [1,1,0,1])
+# GF(2^3) - extension field with irreducible polynomial 1 + x^2 + x^3
+# coefficients are low -> high, so [1, 0, 1, 1] means 1 + x^2 + x^3
+K = alg.Fq(2, [1, 0, 1, 1])
 a = K.elem([1,0,1])      # 1 + x^2
 
 # Z/12Z - ring with zero divisors
@@ -50,7 +55,8 @@ There is also a runnable example in [`play/zn_ring_basics.py`](/Users/froran/Pro
 import algebrapy as alg
 
 # Primitive binary BCH / Hamming code of length 7 over GF(2^3)
-code = alg.BinaryBchCode(3, [1, 1, 0, 1], 3)   # x^3 + x + 1
+# polynomial coefficients are low -> high
+code = alg.BinaryBchCode(3, [1, 1, 0, 1], 3)   # 1 + x + x^3
 print(code)
 print("n =", code.length(), "k =", code.dimension())
 print("g(x) =", code.generator_poly())
@@ -101,6 +107,7 @@ Current decoder scope: `BinaryBchCode.decode()` uses a binary BCH syndrome decod
 ```python
 import algebrapy as alg
 
+# modulus coefficients are low -> high, so [1, 1, 0, 1] means 1 + x + x^3
 rs = alg.ReedSolomonCode(2, [1, 1, 0, 1], 3)   # GF(2^3), RS(7,3,5)
 F = rs.field()
 msg = [F.elem([1]), F.elem([0, 1]), F.elem([1, 1])]
@@ -211,7 +218,7 @@ Fermat check OK
 (.venv) ➜  cat fq_operator_overloads.py
 import algebrapy as alg
 
-K = alg.Fq(2, [1, 1, 0, 1])  # 1 + x + x^3
+K = alg.Fq(2, [1, 1, 0, 1])  # coefficients are low -> high: 1 + x + x^3
 a = K.elem([1, 0, 1])  # 1 + x^2
 b = K.elem([0, 1])  # x
 
