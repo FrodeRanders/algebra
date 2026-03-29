@@ -31,21 +31,59 @@ Coefficient convention for `PolyFp`, `Fq`, and related coding constructors:
 ```python
 import algebrapy as alg
 
-# GF(7) - prime field
-a = alg.Fp(7).elem(3)    # 3 (mod 7)
+# Prime field GF(7)
+F = alg.Fp(7)
+a = F.elem(3)
+b = F.elem(5)
 
-# GF(2^3) - extension field with irreducible polynomial 1 + x^2 + x^3
+print("GF(7)")
+print("elements =", F.elements())
+print("a =", a, "b =", b)
+print("a + b =", a + b)
+print("a * b =", a * b)
+print("a / b =", a / b)
+print("a^6 =", a**6)          # Fermat: a^(p-1) = 1 for a != 0
+print("order(a) =", a.mul_order())
+print()
+
+# Extension field GF(2^3) = F2[x] / (1 + x^2 + x^3)
 # coefficients are low -> high, so [1, 0, 1, 1] means 1 + x^2 + x^3
 K = alg.Fq(2, [1, 0, 1, 1])
-a = K.elem([1,0,1])      # 1 + x^2
+x = K.elem([0, 1])            # x
+c = K.elem([1, 0, 1])         # 1 + x^2
 
-# Z/12Z - ring with zero divisors
+print("GF(2^3)")
+print("x =", x)
+print("c =", c)
+print("x + c =", x + c)
+print("x * c =", x * c)
+print("x^7 =", x**7)
+print("c^-1 =", c**-1)
+print()
+
+# Residue ring Z/12Z
 R = alg.Zn(12)
 u = R.elem(5)
 z = R.elem(6)
+
+print("Z/12Z")
+print("elements =", R.elements())
+print("units =", R.units())
+print("zero divisors =", R.zero_divisors())
+print("R is integral domain?", R.is_integral_domain())
+print("u =", u, "z =", z)
+print("u * z =", u * z)
+print("u is unit?", u.is_unit())
+print("z is zero divisor?", z.is_zero_divisor())
+print("u^-1 =", u.inv())
+
+try:
+    print("z^-1 =", z.inv())
+except Exception as exc:
+    print("z^-1 failed:", exc)
 ```
 
-The implementation supports addition, subtraction, multiplication, and exponentiation across the algebraic structures it exposes. Division and negative exponents are available when an element is invertible, which for `Zn` means the element is a unit. Built with maturin for easy Python integration.
+The implementation supports addition, subtraction, multiplication, and exponentiation across the algebraic structures it exposes. Division and negative exponents are available when an element is invertible, which for `Zn` means the element is a unit. For `Zn`, zero-divisor checks are exposed explicitly so you can experiment with rings that are not integral domains. Built with maturin for easy Python integration.
 
 There is also a runnable example in [`play/zn_ring_basics.py`](/Users/froran/Projects/gautelis/algebra/play/zn_ring_basics.py).
 
