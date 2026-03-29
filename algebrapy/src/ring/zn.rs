@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 use pyo3::{Py, PyAny};
 
 use crate::arith::egcd::inv_mod_i128;
+use crate::arith::prime::is_prime_u64;
 
 /// The residue ring `Z/nZ`.
 #[pyclass(frozen, from_py_object)]
@@ -87,10 +88,29 @@ impl Zn {
             .collect()
     }
 
+    /// Enumerate all nonzero zero divisors of `Z/nZ`.
+    pub fn zero_divisors(&self) -> Vec<ZnElem> {
+        (1..self.n)
+            .filter(|&v| gcd_u64(v, self.n) != 1)
+            .map(|v| ZnElem { n: self.n, v })
+            .collect()
+    }
+
     /// Return whether `a` is invertible.
     pub fn is_unit(&self, a: &ZnElem) -> PyResult<bool> {
         self.check(a)?;
         Ok(gcd_u64(a.v, self.n) == 1)
+    }
+
+    /// Return whether `a` is a nonzero zero divisor.
+    pub fn is_zero_divisor(&self, a: &ZnElem) -> PyResult<bool> {
+        self.check(a)?;
+        Ok(a.v != 0 && gcd_u64(a.v, self.n) != 1)
+    }
+
+    /// Return whether `Z/nZ` is an integral domain.
+    pub fn is_integral_domain(&self) -> bool {
+        is_prime_u64(self.n)
     }
 
     /// Return `a + b`.
@@ -203,6 +223,11 @@ impl ZnElem {
     /// Return whether this element is a unit.
     pub fn is_unit(&self) -> bool {
         gcd_u64(self.v, self.n) == 1
+    }
+
+    /// Return whether this element is a nonzero zero divisor.
+    pub fn is_zero_divisor(&self) -> bool {
+        self.v != 0 && gcd_u64(self.v, self.n) != 1
     }
 
     /// Return `False` only for zero.
@@ -424,6 +449,22 @@ mod tests {
         assert_eq!(units, vec![1, 3, 5, 7]);
         assert!(z.is_unit(&z.elem(3)).unwrap());
         assert!(!z.is_unit(&z.elem(6)).unwrap());
+    }
+
+    #[test]
+    fn zn_zero_divisors_are_detected() {
+        let z = Zn::new(12).unwrap();
+        let zero_divisors: Vec<u64> = z.zero_divisors().into_iter().map(|a| a.v).collect();
+        assert_eq!(zero_divisors, vec![2, 3, 4, 6, 8, 9, 10]);
+        assert!(z.is_zero_divisor(&z.elem(6)).unwrap());
+        assert!(!z.is_zero_divisor(&z.zero()).unwrap());
+        assert!(!z.is_zero_divisor(&z.elem(5)).unwrap());
+    }
+
+    #[test]
+    fn zn_integral_domain_matches_prime_modulus() {
+        assert!(Zn::new(7).unwrap().is_integral_domain());
+        assert!(!Zn::new(12).unwrap().is_integral_domain());
     }
 
     #[test]

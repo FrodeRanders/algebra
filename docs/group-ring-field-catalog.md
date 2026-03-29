@@ -94,11 +94,17 @@ Represents the residue ring `Z/nZ`.
   Enumerate all residue classes.
 - `units()`:
   Enumerate all invertible elements.
+- `zero_divisors()`:
+  Enumerate all nonzero zero divisors.
 
 #### Ring operations
 
 - `is_unit(a)`:
   Return whether `a` is invertible in `Z/nZ`.
+- `is_zero_divisor(a)`:
+  Return whether `a` is a nonzero zero divisor in `Z/nZ`.
+- `is_integral_domain()`:
+  Return whether `Z/nZ` is an integral domain.
 - `add(a, b)`:
   Return `a + b`.
 - `neg(a)`:
@@ -124,6 +130,8 @@ Represents an element of a fixed ring `Z/nZ`.
   Return whether the element is zero.
 - `is_unit()`:
   Return whether the element is invertible.
+- `is_zero_divisor()`:
+  Return whether the element is a nonzero zero divisor.
 - `inv()`:
   Return the multiplicative inverse if it exists.
 

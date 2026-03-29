@@ -8,7 +8,7 @@ This is algebrapy - a Python package for abstract algebra implemented in Rust (u
 - Fp / FpElem - Prime fields GF(p) where p is prime
 - Fq / FqElem - Extension fields GF(p^k) constructed as polynomial quotient rings Fpx/(f) where f is irreducible
 2. Finite Rings
-- Zn / ZnElem - Integer residue rings Z/nZ with unit detection and inversion for units
+- Zn / ZnElem - Integer residue rings Z/nZ with unit detection, zero-divisor checks, and inversion for units
 3. Permutation Groups
 - Perm - Permutations (bijections) with composition, inversion, exponentiation
 - Sn - Symmetric groups S_n with element enumeration and subgroup generation
