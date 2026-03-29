@@ -140,7 +140,7 @@ inv(z) failed: element is not a unit in Zn
 
 The implementation supports addition, subtraction, multiplication, and exponentiation across the algebraic structures it exposes. Division and negative exponents are available when an element is invertible, which for `Zn` means the element is a unit. For `Zn`, zero-divisor checks are exposed explicitly so you can experiment with rings that are not integral domains. Built with maturin for easy Python integration.
 
-There is also a runnable example in [`play/zn_ring_basics.py`](/Users/froran/Projects/gautelis/algebra/play/zn_ring_basics.py).
+There is also a runnable example in [`play/zn_ring_basics.py`](play/zn_ring_basics.py).
 
 ## BCH playground
 
@@ -185,7 +185,7 @@ print("shortened codeword =", sc)
 print("shortened decoded message =", big.decode_shortened_systematic_message(sc, 3))
 ```
 
-There is also a fuller runnable example in [`play/bch_code_demo.py`](/Users/froran/Projects/gautelis/algebra/play/bch_code_demo.py) that exercises:
+There is also a fuller runnable example in [`play/bch_code_demo.py`](play/bch_code_demo.py) that exercises:
 - cyclic and systematic encoding
 - shortened systematic encoding
 - syndrome computation and decoding
@@ -215,13 +215,13 @@ received[5] = received[5] + F.elem([1, 1])
 print("decoded message =", rs.decode_message(received))
 ```
 
-There is also a runnable example in [`play/reed_solomon_demo.py`](/Users/froran/Projects/gautelis/algebra/play/reed_solomon_demo.py).
+There is also a runnable example in [`play/reed_solomon_demo.py`](play/reed_solomon_demo.py).
 
 ## CD-style scratch demo
 
 Compact discs use a more elaborate Reed-Solomon-based pipeline called CIRC, but the essential idea can be demonstrated with the current codebase: interleaving spreads a localized burst error across several codewords so each individual Reed-Solomon decoder only sees a small number of symbol errors.
 
-The toy demo in [`play/reed_solomon_cd_scratch_demo.py`](/Users/froran/Projects/gautelis/algebra/play/reed_solomon_cd_scratch_demo.py) shows exactly that:
+The toy demo in [`play/reed_solomon_cd_scratch_demo.py`](play/reed_solomon_cd_scratch_demo.py) shows exactly that:
 - without interleaving, a short burst damages too many symbols in one codeword and decoding fails
 - with interleaving, the same burst is distributed across several codewords and each one decodes successfully
 
@@ -251,13 +251,13 @@ Successfully installed maturin-1.12.4
 ```terminaloutput
 (.venv) ➜  (cd algebrapy && maturin develop)
 🔗 Found pyo3 bindings
-🐍 Found CPython 3.12 at /Users/froran/Projects/gautelis/algebra/.venv/bin/python
+🐍 Found CPython 3.12 at .venv/bin/python
    Compiling pyo3-build-config v0.28.2
    Compiling pyo3-ffi v0.28.2
    Compiling pyo3-macros-backend v0.28.2
    Compiling pyo3 v0.28.2
    Compiling pyo3-macros v0.28.2
-   Compiling algebrapy v0.1.0 (/Users/froran/Projects/gautelis/algebra/algebrapy)
+   Compiling algebrapy v0.1.0 (./algebrapy)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.59s
 📦 Built wheel for CPython 3.12 to /var/folders/ld/gmfpcx6n12j8w922_4_sbcvc0000gn/T/.tmpTO7MXa/algebrapy-0.1.0-cp312-cp312-macosx_11_0_arm64.whl
 ✏️ Setting installed package as editable
