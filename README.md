@@ -65,22 +65,77 @@ print()
 R = alg.Zn(12)
 u = R.elem(5)
 z = R.elem(6)
+d = R.elem(4)
+e = R.elem(3)
 
 print("Z/12Z")
+print("modulus =", R.modulus())
 print("elements =", R.elements())
+print("u =", u, "z =", z)
+print("u+z =", u + z)
+print("u*z =", u * z)
+print("u^3 =", u ** 3)
 print("units =", R.units())
 print("zero divisors =", R.zero_divisors())
 print("R is integral domain?", R.is_integral_domain())
-print("u =", u, "z =", z)
-print("u * z =", u * z)
 print("u is unit?", u.is_unit())
+print("z is unit?", z.is_unit())
+print("u is zero divisor?", u.is_zero_divisor())
 print("z is zero divisor?", z.is_zero_divisor())
-print("u^-1 =", u.inv())
+print("d =", d, "e =", e)
+print("d*e =", d * e, "so both are zero divisors")
+print("inv(u) =", u.inv())
 
 try:
-    print("z^-1 =", z.inv())
+    print("inv(z) =", z.inv())
 except Exception as exc:
-    print("z^-1 failed:", exc)
+    print("inv(z) failed:", exc)
+
+print("3 + u =", 3 + u)
+print("3 * u =", 3 * u)
+print("3 / u =", 3 / u)
+```
+
+which yields the output:
+```terminaloutput
+GF(7)
+elements = [0 (mod 7), 1 (mod 7), 2 (mod 7), 3 (mod 7), 4 (mod 7), 5 (mod 7), 6 (mod 7)]
+a = 3 (mod 7) b = 5 (mod 7)
+a + b = 1 (mod 7)
+a * b = 1 (mod 7)
+a / b = 2 (mod 7)
+a^6 = 1 (mod 7)
+order(a) = 6
+
+GF(2^3)
+x = x in GF(2^3)
+c = 1 + x^2 in GF(2^3)
+x + c = 1 + x + x^2 in GF(2^3)
+x * c = 1 + x + x^2 in GF(2^3)
+x^7 = 1 in GF(2^3)
+c^-1 = 1 + x + x^2 in GF(2^3)
+
+Z/12Z
+modulus = 12
+elements = [0 (mod 12), 1 (mod 12), 2 (mod 12), 3 (mod 12), 4 (mod 12), 5 (mod 12), 6 (mod 12), 7 (mod 12), 8 (mod 12), 9 (mod 12), 10 (mod 12), 11 (mod 12)]
+u = 5 (mod 12) z = 6 (mod 12)
+u+z = 11 (mod 12)
+u*z = 6 (mod 12)
+u^3 = 5 (mod 12)
+units = [1 (mod 12), 5 (mod 12), 7 (mod 12), 11 (mod 12)]
+zero divisors = [2 (mod 12), 3 (mod 12), 4 (mod 12), 6 (mod 12), 8 (mod 12), 9 (mod 12), 10 (mod 12)]
+R is integral domain? False
+u is unit? True
+z is unit? False
+u is zero divisor? False
+z is zero divisor? True
+d = 4 (mod 12) e = 3 (mod 12)
+d*e = 0 (mod 12) so both are zero divisors
+inv(u) = 5 (mod 12)
+inv(z) failed: element is not a unit in Zn
+3 + u = 8 (mod 12)
+3 * u = 3 (mod 12)
+3 / u = 3 (mod 12)
 ```
 
 The implementation supports addition, subtraction, multiplication, and exponentiation across the algebraic structures it exposes. Division and negative exponents are available when an element is invertible, which for `Zn` means the element is a unit. For `Zn`, zero-divisor checks are exposed explicitly so you can experiment with rings that are not integral domains. Built with maturin for easy Python integration.
