@@ -142,7 +142,7 @@ The implementation supports addition, subtraction, multiplication, and exponenti
 
 There is also a runnable example in [`play/zn_ring_basics.py`](play/zn_ring_basics.py).
 
-For the relationship between residue rings and permutation groups, see [`play/zn_permutation_actions.py`](play/zn_permutation_actions.py). It shows how translations `x -> x + b`, unit actions `x -> a*x`, and affine maps `x -> a*x + b` turn ring elements into concrete permutations of the underlying set, and inspects their cycle decompositions.
+For the relationship between residue rings and permutation groups, see [`play/zn_permutation_actions.py`](play/zn_permutation_actions.py). It compares prime and composite moduli using translations `x -> x + b`, unit actions `x -> a*x`, affine maps `x -> a*x + b`, cycle decompositions, and orbit structure.
 
 ## BCH playground
 
@@ -292,7 +292,7 @@ Example scripts in `play/`:
 - `fq_trace_norm_over_f9.py` - trace, norm, and primitive elements in `GF(3^2)`
 - `fq_primitive_elements.py` - primitive elements in a small extension field
 - `zn_ring_basics.py` - arithmetic, units, zero divisors, and inversion in `Z/nZ`
-- `zn_permutation_actions.py` - translations, unit actions, and affine permutations from `Z/nZ` into `S_n`
+- `zn_permutation_actions.py` - translations, unit actions, affine permutations, and orbit structure from `Z/nZ` into `S_n`
 - `sn_subgroup_generation.py` - subgroup generation in a symmetric group
 - `bch_code_demo.py` - BCH encoding, decoding, shortening, and code parameters
 - `reed_solomon_demo.py` - Reed-Solomon encoding, syndromes, and decoding

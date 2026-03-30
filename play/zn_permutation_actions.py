@@ -1,57 +1,60 @@
 import algebrapy as alg
 
-R = alg.Zn(12)
-u = R.elem(5)
-z = R.elem(6)
-b = R.elem(3)
 
-print("R =", R)
-print("units =", R.units())
-print("zero divisors =", R.zero_divisors())
-print()
+def show_perm(label, perm):
+    print(label)
+    print("  perm =", perm)
+    print("  images =", perm.as_images())
+    print("  cycles =", perm.cycles())
+    print("  cycle type =", perm.cycle_type())
+    print("  order =", perm.order())
+    print()
 
-tu = R.add_perm(b)
-mu = R.mul_perm(u)
-au = R.affine_perm(u, b)
 
-print("translation x -> x + 3")
-print("perm =", tu)
-print("images =", tu.as_images())
-print("cycles =", tu.cycles())
-print("cycle type =", tu.cycle_type())
-print("order =", tu.order())
-print()
+def show_action(title, ring, generators):
+    print(title)
+    print("modulus =", ring.modulus())
+    print("units =", ring.units())
+    print("zero divisors =", ring.zero_divisors())
+    sn = alg.Sn(ring.modulus())
+    print("orbits =", sn.orbits(generators))
+    print()
 
-print("multiplication x -> 5x")
-print("perm =", mu)
-print("images =", mu.as_images())
-print("cycles =", mu.cycles())
-print("cycle type =", mu.cycle_type())
-print("order =", mu.order())
-print()
 
-print("affine action x -> 5x + 3")
-print("perm =", au)
-print("images =", au.as_images())
-print("cycles =", au.cycles())
-print("cycle type =", au.cycle_type())
-print("order =", au.order())
-print()
+# Composite modulus: the unit group action is not transitive on nonzero residues.
+R12 = alg.Zn(12)
+u5 = R12.elem(5)
+u7 = R12.elem(7)
+z6 = R12.elem(6)
+b3 = R12.elem(3)
 
-print("The unit group acting by multiplication:")
-for perm in R.unit_group_perms():
-    print(
-        perm.as_images(),
-        "cycles =",
-        perm.cycles(),
-        "cycle type =",
-        perm.cycle_type(),
-        "order =",
-        perm.order(),
-    )
-print()
+t12 = R12.add_perm(b3)
+m12 = R12.mul_perm(u5)
+a12 = R12.affine_perm(u5, b3)
+
+show_perm("Z/12Z translation x -> x + 3", t12)
+show_perm("Z/12Z multiplication x -> 5x", m12)
+show_perm("Z/12Z affine action x -> 5x + 3", a12)
+
+show_action("Unit-group action on Z/12Z", R12, [R12.mul_perm(u5), R12.mul_perm(u7)])
 
 try:
-    print("x -> 6x =", R.mul_perm(z))
+    print("x -> 6x =", R12.mul_perm(z6))
 except Exception as exc:
     print("x -> 6x failed:", exc)
+print()
+
+# Prime modulus: multiplication by a primitive element acts transitively on nonzero residues.
+R7 = alg.Zn(7)
+g = R7.elem(3)  # primitive modulo 7
+t7 = R7.add_perm(R7.elem(1))
+m7 = R7.mul_perm(g)
+a7 = R7.affine_perm(g, R7.elem(1))
+
+show_perm("Z/7Z translation x -> x + 1", t7)
+show_perm("Z/7Z multiplication x -> 3x", m7)
+show_perm("Z/7Z affine action x -> 3x + 1", a7)
+
+show_action("Cyclic unit-group action on Z/7Z", R7, [m7])
+
+print("orbit of 1 under multiplication by 3 mod 7 =", alg.Sn(7).orbit(1, [m7]))
