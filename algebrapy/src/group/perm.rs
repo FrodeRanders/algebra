@@ -151,6 +151,35 @@ impl Perm {
         l
     }
 
+    /// Return the nontrivial disjoint cycles of the permutation.
+    pub fn cycles(&self) -> Vec<Vec<usize>> {
+        let mut visited = vec![false; self.n];
+        let mut out: Vec<Vec<usize>> = Vec::new();
+        for i in 0..self.n {
+            if visited[i] {
+                continue;
+            }
+            let mut cycle: Vec<usize> = Vec::new();
+            let mut j = i;
+            while !visited[j] {
+                visited[j] = true;
+                cycle.push(j);
+                j = self.images[j];
+            }
+            if cycle.len() > 1 {
+                out.push(cycle);
+            }
+        }
+        out
+    }
+
+    /// Return the sorted lengths of the nontrivial disjoint cycles.
+    pub fn cycle_type(&self) -> Vec<usize> {
+        let mut ty: Vec<usize> = self.cycles().into_iter().map(|c| c.len()).collect();
+        ty.sort_unstable();
+        ty
+    }
+
     /// Return a debug-style representation.
     pub fn __repr__(&self) -> String {
         format!("Perm(n={}, images={:?})", self.n, self.images)
@@ -331,5 +360,13 @@ mod tests {
 
         let subgroup = s4.generated(vec![t01, t12, t23]).unwrap();
         assert_eq!(subgroup.len(), 24);
+    }
+
+    #[test]
+    fn cycle_structure_ignores_fixed_points() {
+        let p = Perm::new(6, vec![1, 0, 2, 4, 5, 3]).unwrap();
+        assert_eq!(p.cycles(), vec![vec![0, 1], vec![3, 4, 5]]);
+        assert_eq!(p.cycle_type(), vec![2, 3]);
+        assert_eq!(p.order(), 6);
     }
 }

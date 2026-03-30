@@ -34,6 +34,10 @@ Represents a permutation of `{0, ..., n-1}` in image form.
   Raise the permutation to an integer power. Negative powers use the inverse; `0` returns the identity.
 - `order()`:
   Return the group-theoretic order of the permutation, computed as the least common multiple of its cycle lengths.
+- `cycles()`:
+  Return the nontrivial disjoint cycles, omitting fixed points.
+- `cycle_type()`:
+  Return the sorted lengths of the nontrivial disjoint cycles.
 
 #### Python protocol methods
 

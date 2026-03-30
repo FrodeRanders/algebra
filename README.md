@@ -142,7 +142,7 @@ The implementation supports addition, subtraction, multiplication, and exponenti
 
 There is also a runnable example in [`play/zn_ring_basics.py`](play/zn_ring_basics.py).
 
-For the relationship between residue rings and permutation groups, see [`play/zn_permutation_actions.py`](play/zn_permutation_actions.py). It shows how translations `x -> x + b`, unit actions `x -> a*x`, and affine maps `x -> a*x + b` turn ring elements into concrete permutations of the underlying set.
+For the relationship between residue rings and permutation groups, see [`play/zn_permutation_actions.py`](play/zn_permutation_actions.py). It shows how translations `x -> x + b`, unit actions `x -> a*x`, and affine maps `x -> a*x + b` turn ring elements into concrete permutations of the underlying set, and inspects their cycle decompositions.
 
 ## BCH playground
 
