@@ -11,7 +11,7 @@ use coding::rs::ReedSolomonCode;
 use field::fp::{Fp, FpElem};
 use field::fq::{Fq, FqElem};
 use field::poly_fp::PolyFp;
-use group::perm::{Perm, Sn};
+use group::perm::{Perm, PermSubgroup, Sn};
 use ring::zn::{Zn, ZnElem};
 
 /// A Python module implemented in Rust.
@@ -30,6 +30,7 @@ mod algebrapy {
         m.add_class::<BinaryBchCode>()?;
         m.add_class::<ReedSolomonCode>()?;
         m.add_class::<Perm>()?;
+        m.add_class::<PermSubgroup>()?;
         m.add_class::<Sn>()?;
         Ok(())
     }

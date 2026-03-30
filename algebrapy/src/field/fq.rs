@@ -363,7 +363,9 @@ impl Fq {
         point: usize,
         max_size: u64,
     ) -> PyResult<Vec<Perm>> {
-        Sn::new(self.size() as usize)?.stabilizer(point, self.multiplicative_group_perms_with_limit(max_size)?)
+        Ok(Sn::new(self.size() as usize)?
+            .stabilizer(point, self.multiplicative_group_perms_with_limit(max_size)?)?
+            .elements())
     }
 
     /// Return the size of the stabilizer of `point` under the multiplicative action.

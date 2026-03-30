@@ -177,7 +177,9 @@ impl Zn {
 
     /// Return the stabilizer subgroup of `point` under the unit action `x -> u*x`.
     pub fn unit_action_stabilizer(&self, point: usize) -> PyResult<Vec<Perm>> {
-        Sn::new(self.n as usize)?.stabilizer(point, self.unit_group_perms()?)
+        Ok(Sn::new(self.n as usize)?
+            .stabilizer(point, self.unit_group_perms()?)?
+            .elements())
     }
 
     /// Return the size of the stabilizer of `point` under the unit action `x -> u*x`.

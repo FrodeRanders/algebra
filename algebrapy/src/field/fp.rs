@@ -181,7 +181,9 @@ impl Fp {
 
     /// Return the stabilizer subgroup of `point` under the multiplicative action.
     pub fn multiplicative_action_stabilizer(&self, point: usize) -> PyResult<Vec<Perm>> {
-        Sn::new(self.p as usize)?.stabilizer(point, self.multiplicative_group_perms()?)
+        Ok(Sn::new(self.p as usize)?
+            .stabilizer(point, self.multiplicative_group_perms()?)?
+            .elements())
     }
 
     /// Return the size of the stabilizer of `point` under the multiplicative action.

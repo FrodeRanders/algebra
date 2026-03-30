@@ -11,6 +11,7 @@ This is algebrapy - a Python package for abstract algebra implemented in Rust (u
 - Zn / ZnElem - Integer residue rings Z/nZ with unit detection, zero-divisor checks, and inversion for units
 3. Permutation Groups
 - Perm - Permutations (bijections) with composition, inversion, exponentiation
+- PermSubgroup - Explicit finite subgroups of `S_n` with order, orbit, stabilizer, normality, and Sylow `p`-subgroup utilities
 - Sn - Symmetric groups S_n with element enumeration and subgroup generation
 4. Arithmetic Utilities
 - Extended GCD algorithm
@@ -151,6 +152,8 @@ For the field-side version of the same story, see [`play/fp_permutation_actions.
 For a small extension-field version, see [`play/fq_permutation_actions.py`](play/fq_permutation_actions.py). It shows the same action viewpoint in `GF(2^3)`, where a primitive element generates the multiplicative group.
 
 For a permutation-group-only continuation, see [`play/sn_conjugacy_demo.py`](play/sn_conjugacy_demo.py). It shows conjugation in `S_n`, where cycle type controls conjugacy classes.
+
+For subgroup structure in small permutation groups, see [`play/sn_sylow_demo.py`](play/sn_sylow_demo.py). It computes Sylow `2`- and `3`-subgroups of `S4` from explicit generators.
 
 ## Finite Actions
 
@@ -341,6 +344,7 @@ Example scripts in `play/`:
 - `zn_ring_basics.py` - arithmetic, units, zero divisors, and inversion in `Z/nZ`
 - `zn_permutation_actions.py` - translations, unit actions, affine permutations, and orbit structure from `Z/nZ` into `S_n`
 - `sn_subgroup_generation.py` - subgroup generation in a symmetric group
+- `sn_sylow_demo.py` - Sylow subgroup structure in a generated subgroup of `S4`
 - `sn_conjugacy_demo.py` - conjugation and conjugacy-class sizes in `S_n`
 - `bch_code_demo.py` - BCH encoding, decoding, shortening, and code parameters
 - `reed_solomon_demo.py` - Reed-Solomon encoding, syndromes, and decoding

@@ -14,6 +14,7 @@ For a finite set `X`, a permutation action is just a way to let algebraic data m
 
 In this codebase:
 - `Perm` represents a single permutation
+- `PermSubgroup` represents an explicit finite subgroup of `S_n`
 - `Sn` provides subgroup and action utilities on `{0, ..., n-1}`
 - `Fp`, `Fq`, and `Zn` can build permutations from arithmetic maps
 
@@ -149,6 +150,7 @@ Relevant API:
 
 Runnable example:
 - [`play/sn_conjugacy_demo.py`](../play/sn_conjugacy_demo.py)
+- [`play/sn_sylow_demo.py`](../play/sn_sylow_demo.py)
 
 ## A good comparison to keep in mind
 
@@ -195,6 +197,8 @@ If you want to learn the codebase in a mathematically sensible order:
    Focus on how the same picture extends to `GF(2^3)`.
 5. Finally read [`play/sn_conjugacy_demo.py`](../play/sn_conjugacy_demo.py)
    Focus on what the same permutation toolkit says about groups acting on themselves by conjugation.
+6. Then try [`play/sn_sylow_demo.py`](../play/sn_sylow_demo.py)
+   Focus on explicit subgroup structure and Sylow `p`-subgroups in `S4`.
 
 ## Where to look next
 
@@ -206,3 +210,4 @@ For runnable demonstrations:
 - [`play/fq_permutation_actions.py`](../play/fq_permutation_actions.py)
 - [`play/zn_permutation_actions.py`](../play/zn_permutation_actions.py)
 - [`play/sn_conjugacy_demo.py`](../play/sn_conjugacy_demo.py)
+- [`play/sn_sylow_demo.py`](../play/sn_sylow_demo.py)
