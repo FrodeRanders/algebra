@@ -49,7 +49,7 @@ Relevant API:
 - `Fp.mul_order`
 
 Runnable example:
-- [`play/fp_permutation_actions.py`](play/fp_permutation_actions.py)
+- [`play/fp_permutation_actions.py`](../play/fp_permutation_actions.py)
 
 ### Extension fields `GF(p^k)`
 
@@ -70,7 +70,7 @@ Relevant API:
 - `Fq.mul_order`
 
 Runnable example:
-- [`play/fq_permutation_actions.py`](play/fq_permutation_actions.py)
+- [`play/fq_permutation_actions.py`](../play/fq_permutation_actions.py)
 
 ### Residue rings `Z/nZ`
 
@@ -98,8 +98,8 @@ Relevant API:
 - `Zn.is_unit_action_transitive`
 
 Runnable examples:
-- [`play/zn_ring_basics.py`](play/zn_ring_basics.py)
-- [`play/zn_permutation_actions.py`](play/zn_permutation_actions.py)
+- [`play/zn_ring_basics.py`](../play/zn_ring_basics.py)
+- [`play/zn_permutation_actions.py`](../play/zn_permutation_actions.py)
 
 ## Reading the permutation data
 
@@ -148,7 +148,7 @@ Relevant API:
 - `Sn.conjugacy_class_size`
 
 Runnable example:
-- [`play/sn_conjugacy_demo.py`](play/sn_conjugacy_demo.py)
+- [`play/sn_conjugacy_demo.py`](../play/sn_conjugacy_demo.py)
 
 ## A good comparison to keep in mind
 
@@ -185,24 +185,24 @@ That fragmentation reflects the presence of zero divisors and non-units.
 
 If you want to learn the codebase in a mathematically sensible order:
 
-1. Start with [`play/zn_ring_basics.py`](play/zn_ring_basics.py)
+1. Start with [`play/zn_ring_basics.py`](../play/zn_ring_basics.py)
    Focus on units, zero divisors, and why inverses fail.
-2. Move to [`play/fp_permutation_actions.py`](play/fp_permutation_actions.py)
+2. Move to [`play/fp_permutation_actions.py`](../play/fp_permutation_actions.py)
    Focus on one big nonzero orbit and primitive elements.
-3. Compare with [`play/zn_permutation_actions.py`](play/zn_permutation_actions.py)
+3. Compare with [`play/zn_permutation_actions.py`](../play/zn_permutation_actions.py)
    Focus on orbit splitting in `Z/12Z`.
-4. Then read [`play/fq_permutation_actions.py`](play/fq_permutation_actions.py)
+4. Then read [`play/fq_permutation_actions.py`](../play/fq_permutation_actions.py)
    Focus on how the same picture extends to `GF(2^3)`.
-5. Finally read [`play/sn_conjugacy_demo.py`](play/sn_conjugacy_demo.py)
+5. Finally read [`play/sn_conjugacy_demo.py`](../play/sn_conjugacy_demo.py)
    Focus on what the same permutation toolkit says about groups acting on themselves by conjugation.
 
 ## Where to look next
 
 For API lookup:
-- [`docs/group-ring-field-catalog.md`](docs/group-ring-field-catalog.md)
+- [`docs/group-ring-field-catalog.md`](group-ring-field-catalog.md)
 
 For runnable demonstrations:
-- [`play/fp_permutation_actions.py`](play/fp_permutation_actions.py)
-- [`play/fq_permutation_actions.py`](play/fq_permutation_actions.py)
-- [`play/zn_permutation_actions.py`](play/zn_permutation_actions.py)
-- [`play/sn_conjugacy_demo.py`](play/sn_conjugacy_demo.py)
+- [`play/fp_permutation_actions.py`](../play/fp_permutation_actions.py)
+- [`play/fq_permutation_actions.py`](../play/fq_permutation_actions.py)
+- [`play/zn_permutation_actions.py`](../play/zn_permutation_actions.py)
+- [`play/sn_conjugacy_demo.py`](../play/sn_conjugacy_demo.py)
