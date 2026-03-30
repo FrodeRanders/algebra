@@ -144,7 +144,7 @@ There is also a runnable example in [`play/zn_ring_basics.py`](play/zn_ring_basi
 
 For the relationship between residue rings and permutation groups, see [`play/zn_permutation_actions.py`](play/zn_permutation_actions.py). It compares prime and composite moduli using translations `x -> x + b`, unit actions `x -> a*x`, affine maps `x -> a*x + b`, cycle decompositions, and orbit structure.
 
-For the field-side version of the same story, see [`play/fp_permutation_actions.py`](play/fp_permutation_actions.py). It uses `GF(p)` directly and contrasts its multiplicative action on nonzero elements with the more fragmented behavior in composite `Z/nZ`.
+For the field-side version of the same story, see [`play/fp_permutation_actions.py`](play/fp_permutation_actions.py). It uses `GF(p)` directly and contrasts its multiplicative action on nonzero elements with the more fragmented behavior in composite `Z/nZ`, including orbit and stabilizer sizes.
 
 For a small extension-field version, see [`play/fq_permutation_actions.py`](play/fq_permutation_actions.py). It shows the same action viewpoint in `GF(2^3)`, where a primitive element generates the multiplicative group.
 
