@@ -144,6 +144,23 @@ There is also a runnable example in [`play/zn_ring_basics.py`](play/zn_ring_basi
 
 For the relationship between residue rings and permutation groups, see [`play/zn_permutation_actions.py`](play/zn_permutation_actions.py). It compares prime and composite moduli using translations `x -> x + b`, unit actions `x -> a*x`, affine maps `x -> a*x + b`, cycle decompositions, and orbit structure.
 
+For the field-side version of the same story, see [`play/fp_permutation_actions.py`](play/fp_permutation_actions.py). It uses `GF(p)` directly and contrasts its multiplicative action on nonzero elements with the more fragmented behavior in composite `Z/nZ`.
+
+For a small extension-field version, see [`play/fq_permutation_actions.py`](play/fq_permutation_actions.py). It shows the same action viewpoint in `GF(2^3)`, where a primitive element generates the multiplicative group.
+
+## Finite Actions
+
+One good way to see the difference between fields and rings with zero divisors is to let arithmetic act as permutations of the underlying set.
+
+- In `GF(p)`, every nonzero `a` gives a permutation `x -> a*x`, and a primitive element acts transitively on the nonzero elements.
+- In `Z/nZ`, only units give permutations `x -> a*x`. Zero divisors fail immediately, and even the full unit-group action usually breaks the set into several orbits.
+
+For example:
+- in `GF(7)`, multiplication by `3` has orbit `[1, 2, 3, 4, 5, 6]` on the nonzero elements
+- in `Z/12Z`, the unit action splits into orbits like `[1, 5, 7, 11]`, `[2, 10]`, `[3, 9]`, `[4, 8]`, plus fixed points `0` and `6`
+
+That viewpoint is what the permutation-action playgrounds are meant to expose.
+
 ## BCH playground
 
 ```python
@@ -285,12 +302,14 @@ Example scripts in `play/`:
 - `fp_quadratic_residue_table.py` - quadratic residue checks and square roots over `Fp`
 - `fp_quadratic_residues_and_dlog.py` - quadratic residues together with discrete logarithms
 - `fp_cayley_table.py` - multiplication table for a small prime field
+- `fp_permutation_actions.py` - permutation actions and orbit structure coming from `GF(p)` arithmetic
 - `fq_extension_construction.py` - building `GF(p^k)` from an irreducible polynomial
 - `fq_operator_overloads.py` - extension-field arithmetic via Python operators
 - `fq_power_cycle.py` - powers of a distinguished element in an extension field
 - `fq_trace_and_norm.py` - trace and norm in `GF(2^3)`
 - `fq_trace_norm_over_f9.py` - trace, norm, and primitive elements in `GF(3^2)`
 - `fq_primitive_elements.py` - primitive elements in a small extension field
+- `fq_permutation_actions.py` - permutation actions and orbit structure coming from `GF(2^3)` arithmetic
 - `zn_ring_basics.py` - arithmetic, units, zero divisors, and inversion in `Z/nZ`
 - `zn_permutation_actions.py` - translations, unit actions, affine permutations, and orbit structure from `Z/nZ` into `S_n`
 - `sn_subgroup_generation.py` - subgroup generation in a symmetric group

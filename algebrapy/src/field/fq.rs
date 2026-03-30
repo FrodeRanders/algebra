@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 use pyo3::{Py, PyAny};
 
 use super::poly_fp::PolyFp;
+use crate::group::perm::Perm;
 
 /// The extension field `GF(p^k)` represented as `F_p[x] / (f)`.
 #[pyclass(frozen, from_py_object)]
@@ -227,6 +228,90 @@ impl Fq {
             modulus_coeffs: self.modulus.coeffs(),
             coeffs: reduced,
         })
+    }
+
+    /// Return the permutation of field elements induced by `x -> x + b`.
+    /// Uses the default enumeration bound `max_size = 4096`.
+    pub fn add_perm(&self, b: &FqElem) -> PyResult<Perm> {
+        self.add_perm_with_limit(b, 4096)
+    }
+
+    /// Return the permutation of field elements induced by `x -> x + b`.
+    pub fn add_perm_with_limit(&self, b: &FqElem, max_size: u64) -> PyResult<Perm> {
+        self.check(b)?;
+        let elems = self.elements(Some(max_size))?;
+        let mut images: Vec<usize> = Vec::with_capacity(elems.len());
+
+        for x in &elems {
+            let y = self.add(x, b)?;
+            let idx = elems
+                .iter()
+                .position(|e| e.coeffs == y.coeffs)
+                .ok_or_else(|| PyValueError::new_err("failed to index translated element"))?;
+            images.push(idx);
+        }
+
+        Ok(Perm::new(elems.len(), images)?)
+    }
+
+    /// Return the permutation of field elements induced by `x -> a*x`.
+    /// Uses the default enumeration bound `max_size = 4096`.
+    pub fn mul_perm(&self, a: &FqElem) -> PyResult<Perm> {
+        self.mul_perm_with_limit(a, 4096)
+    }
+
+    /// Return the permutation of field elements induced by `x -> a*x`.
+    pub fn mul_perm_with_limit(&self, a: &FqElem, max_size: u64) -> PyResult<Perm> {
+        self.check(a)?;
+        if a.coeffs.is_empty() {
+            return Err(PyValueError::new_err(
+                "0 is not invertible, so x -> a*x is not a permutation",
+            ));
+        }
+        let elems = self.elements(Some(max_size))?;
+        let mut images: Vec<usize> = Vec::with_capacity(elems.len());
+
+        for x in &elems {
+            let y = self.mul(a, x)?;
+            let idx = elems
+                .iter()
+                .position(|e| e.coeffs == y.coeffs)
+                .ok_or_else(|| PyValueError::new_err("failed to index multiplied element"))?;
+            images.push(idx);
+        }
+
+        Ok(Perm::new(elems.len(), images)?)
+    }
+
+    /// Return the affine permutation induced by `x -> a*x + b`.
+    /// Uses the default enumeration bound `max_size = 4096`.
+    pub fn affine_perm(&self, a: &FqElem, b: &FqElem) -> PyResult<Perm> {
+        self.affine_perm_with_limit(a, b, 4096)
+    }
+
+    /// Return the affine permutation induced by `x -> a*x + b`.
+    pub fn affine_perm_with_limit(&self, a: &FqElem, b: &FqElem, max_size: u64) -> PyResult<Perm> {
+        self.check(a)?;
+        self.check(b)?;
+        if a.coeffs.is_empty() {
+            return Err(PyValueError::new_err(
+                "leading coefficient must be nonzero for x -> a*x + b to be a permutation",
+            ));
+        }
+        let elems = self.elements(Some(max_size))?;
+        let mut images: Vec<usize> = Vec::with_capacity(elems.len());
+
+        for x in &elems {
+            let ax = self.mul(a, x)?;
+            let y = self.add(&ax, b)?;
+            let idx = elems
+                .iter()
+                .position(|e| e.coeffs == y.coeffs)
+                .ok_or_else(|| PyValueError::new_err("failed to index affine image"))?;
+            images.push(idx);
+        }
+
+        Ok(Perm::new(elems.len(), images)?)
     }
 
     /// Return the multiplicative order of a nonzero element.
@@ -637,5 +722,27 @@ mod tests {
         let inv = k.inv(&a).unwrap();
         let pow = k.pow(&a, -1).unwrap();
         assert_eq!(pow.coeffs(), inv.coeffs());
+    }
+
+    #[test]
+    fn fq_add_mul_and_affine_perms_exist() {
+        let k = Fq::new(2, vec![1, 1, 0, 1]).unwrap();
+        let a = k.elem(vec![0, 1]).unwrap();
+        let b = k.elem(vec![1]).unwrap();
+
+        let add = k.add_perm(&b).unwrap();
+        let mul = k.mul_perm(&a).unwrap();
+        let affine = k.affine_perm(&a, &b).unwrap();
+
+        assert_eq!(add.n(), 8);
+        assert_eq!(mul.n(), 8);
+        assert_eq!(add.compose(&mul).unwrap(), affine);
+    }
+
+    #[test]
+    fn fq_mul_perm_rejects_zero() {
+        let k = Fq::new(2, vec![1, 1, 0, 1]).unwrap();
+        assert!(k.mul_perm(&k.zero()).is_err());
+        assert!(k.affine_perm(&k.zero(), &k.one()).is_err());
     }
 }

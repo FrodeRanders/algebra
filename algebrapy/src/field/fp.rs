@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 use crate::arith::egcd::inv_mod_i128;
 use crate::arith::prime::is_prime_u64;
+use crate::group::perm::Perm;
 
 /// The prime field `GF(p)`.
 #[pyclass(frozen, from_py_object)]
@@ -112,6 +113,52 @@ impl Fp {
             p: self.p,
             v: (prod % (self.p as u128)) as u64,
         })
+    }
+
+    /// Return the permutation of field elements induced by `x -> x + b`.
+    pub fn add_perm(&self, b: &FpElem) -> PyResult<Perm> {
+        self.check(b)?;
+        Ok(Perm::new(
+            self.p as usize,
+            (0..self.p)
+                .map(|x| ((x + b.v) % self.p) as usize)
+                .collect(),
+        )?)
+    }
+
+    /// Return the permutation of field elements induced by `x -> a*x`.
+    pub fn mul_perm(&self, a: &FpElem) -> PyResult<Perm> {
+        self.check(a)?;
+        if a.v == 0 {
+            return Err(PyValueError::new_err(
+                "0 is not invertible, so x -> a*x is not a permutation",
+            ));
+        }
+        Ok(Perm::new(
+            self.p as usize,
+            (0..self.p)
+                .map(|x| (((a.v as u128) * (x as u128)) % (self.p as u128)) as usize)
+                .collect(),
+        )?)
+    }
+
+    /// Return the affine permutation induced by `x -> a*x + b`.
+    pub fn affine_perm(&self, a: &FpElem, b: &FpElem) -> PyResult<Perm> {
+        self.check(a)?;
+        self.check(b)?;
+        if a.v == 0 {
+            return Err(PyValueError::new_err(
+                "leading coefficient must be nonzero for x -> a*x + b to be a permutation",
+            ));
+        }
+        Ok(Perm::new(
+            self.p as usize,
+            (0..self.p)
+                .map(|x| {
+                    ((((a.v as u128) * (x as u128)) + (b.v as u128)) % (self.p as u128)) as usize
+                })
+                .collect(),
+        )?)
     }
 
     /// Multiplicative inverse in GF(p). Raises ZeroDivisionError for 0.
@@ -675,6 +722,25 @@ mod tests {
                 assert_eq!(f.mul_order(&a).unwrap(), brute_mul_order(&f, &a).unwrap());
             }
         }
+    }
+
+    #[test]
+    fn fp_add_mul_and_affine_perms_exist() {
+        let f = Fp::new(7).unwrap();
+        let add = f.add_perm(&f.elem(2)).unwrap();
+        let mul = f.mul_perm(&f.elem(3)).unwrap();
+        let affine = f.affine_perm(&f.elem(3), &f.elem(2)).unwrap();
+
+        assert_eq!(add.as_images(), vec![2, 3, 4, 5, 6, 0, 1]);
+        assert_eq!(mul.as_images(), vec![0, 3, 6, 2, 5, 1, 4]);
+        assert_eq!(add.compose(&mul).unwrap(), affine);
+    }
+
+    #[test]
+    fn fp_mul_perm_rejects_zero() {
+        let f = Fp::new(7).unwrap();
+        assert!(f.mul_perm(&f.zero()).is_err());
+        assert!(f.affine_perm(&f.zero(), &f.elem(1)).is_err());
     }
 
     #[test]

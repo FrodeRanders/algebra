@@ -3,9 +3,7 @@ import algebrapy as alg
 
 def show_perm(label, perm):
     print(label)
-    print("  perm =", perm)
-    print("  images =", perm.as_images())
-    print("  cycles =", perm.cycles())
+    print("  cycle notation =", perm.cycle_notation())
     print("  cycle type =", perm.cycle_type())
     print("  order =", perm.order())
     print()
@@ -17,7 +15,9 @@ def show_action(title, ring, generators):
     print("units =", ring.units())
     print("zero divisors =", ring.zero_divisors())
     sn = alg.Sn(ring.modulus())
+    print("subgroup size =", sn.subgroup_size(generators))
     print("orbits =", sn.orbits(generators))
+    print("transitive? =", sn.is_transitive(generators))
     print()
 
 
@@ -37,6 +37,10 @@ show_perm("Z/12Z multiplication x -> 5x", m12)
 show_perm("Z/12Z affine action x -> 5x + 3", a12)
 
 show_action("Unit-group action on Z/12Z", R12, [R12.mul_perm(u5), R12.mul_perm(u7)])
+print("unit action subgroup size =", R12.unit_action_subgroup_size())
+print("unit action orbits =", R12.unit_action_orbits())
+print("unit action transitive? =", R12.is_unit_action_transitive())
+print()
 
 try:
     print("x -> 6x =", R12.mul_perm(z6))
@@ -56,5 +60,9 @@ show_perm("Z/7Z multiplication x -> 3x", m7)
 show_perm("Z/7Z affine action x -> 3x + 1", a7)
 
 show_action("Cyclic unit-group action on Z/7Z", R7, [m7])
+print("unit action subgroup size =", R7.unit_action_subgroup_size())
+print("unit action orbits =", R7.unit_action_orbits())
+print("unit action transitive? =", R7.is_unit_action_transitive())
+print()
 
 print("orbit of 1 under multiplication by 3 mod 7 =", alg.Sn(7).orbit(1, [m7]))
