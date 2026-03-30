@@ -105,6 +105,14 @@ Represents the residue ring `Z/nZ`.
   Return whether `a` is a nonzero zero divisor in `Z/nZ`.
 - `is_integral_domain()`:
   Return whether `Z/nZ` is an integral domain.
+- `add_perm(b)`:
+  Return the permutation of residues induced by the translation `x -> x + b`.
+- `mul_perm(a)`:
+  Return the permutation induced by `x -> a*x`. Fails when `a` is not a unit.
+- `affine_perm(a, b)`:
+  Return the affine permutation `x -> a*x + b`. Fails when `a` is not a unit.
+- `unit_group_perms()`:
+  Return the permutation representation of the unit group acting on `Z/nZ` by multiplication.
 - `add(a, b)`:
   Return `a + b`.
 - `neg(a)`:

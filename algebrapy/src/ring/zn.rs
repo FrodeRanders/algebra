@@ -4,6 +4,7 @@ use pyo3::{Py, PyAny};
 
 use crate::arith::egcd::inv_mod_i128;
 use crate::arith::prime::is_prime_u64;
+use crate::group::perm::Perm;
 
 /// The residue ring `Z/nZ`.
 #[pyclass(frozen, from_py_object)]
@@ -111,6 +112,57 @@ impl Zn {
     /// Return whether `Z/nZ` is an integral domain.
     pub fn is_integral_domain(&self) -> bool {
         is_prime_u64(self.n)
+    }
+
+    /// Return the permutation of residues induced by `x -> x + b`.
+    pub fn add_perm(&self, b: &ZnElem) -> PyResult<Perm> {
+        self.check(b)?;
+        Ok(Perm::new(
+            self.n as usize,
+            (0..self.n)
+                .map(|x| ((x + b.v) % self.n) as usize)
+                .collect(),
+        )?)
+    }
+
+    /// Return the permutation of residues induced by `x -> a*x`.
+    pub fn mul_perm(&self, a: &ZnElem) -> PyResult<Perm> {
+        self.check(a)?;
+        if !a.is_unit() {
+            return Err(PyValueError::new_err(
+                "element is not a unit, so x -> a*x is not a permutation",
+            ));
+        }
+        Ok(Perm::new(
+            self.n as usize,
+            (0..self.n)
+                .map(|x| (((a.v as u128) * (x as u128)) % (self.n as u128)) as usize)
+                .collect(),
+        )?)
+    }
+
+    /// Return the affine permutation induced by `x -> a*x + b`.
+    pub fn affine_perm(&self, a: &ZnElem, b: &ZnElem) -> PyResult<Perm> {
+        self.check(a)?;
+        self.check(b)?;
+        if !a.is_unit() {
+            return Err(PyValueError::new_err(
+                "leading coefficient is not a unit, so x -> a*x + b is not a permutation",
+            ));
+        }
+        Ok(Perm::new(
+            self.n as usize,
+            (0..self.n)
+                .map(|x| {
+                    ((((a.v as u128) * (x as u128)) + (b.v as u128)) % (self.n as u128)) as usize
+                })
+                .collect(),
+        )?)
+    }
+
+    /// Return the permutation representation of the unit group acting by multiplication.
+    pub fn unit_group_perms(&self) -> PyResult<Vec<Perm>> {
+        self.units().iter().map(|u| self.mul_perm(u)).collect()
     }
 
     /// Return `a + b`.
@@ -465,6 +517,43 @@ mod tests {
     fn zn_integral_domain_matches_prime_modulus() {
         assert!(Zn::new(7).unwrap().is_integral_domain());
         assert!(!Zn::new(12).unwrap().is_integral_domain());
+    }
+
+    #[test]
+    fn zn_add_perm_matches_translation() {
+        let z = Zn::new(5).unwrap();
+        let p = z.add_perm(&z.elem(2)).unwrap();
+        assert_eq!(p.as_images(), vec![2, 3, 4, 0, 1]);
+        assert_eq!(p.order(), 5);
+    }
+
+    #[test]
+    fn zn_mul_perm_exists_exactly_for_units() {
+        let z = Zn::new(12).unwrap();
+        let p = z.mul_perm(&z.elem(5)).unwrap();
+        assert_eq!(p.as_images(), vec![0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7]);
+        assert_eq!(p.order(), 2);
+        assert!(z.mul_perm(&z.elem(6)).is_err());
+    }
+
+    #[test]
+    fn zn_affine_perm_composes_additive_and_multiplicative_actions() {
+        let z = Zn::new(7).unwrap();
+        let a = z.elem(3);
+        let b = z.elem(2);
+
+        let mul = z.mul_perm(&a).unwrap();
+        let add = z.add_perm(&b).unwrap();
+        let affine = z.affine_perm(&a, &b).unwrap();
+
+        assert_eq!(add.compose(&mul).unwrap(), affine);
+    }
+
+    #[test]
+    fn zn_unit_group_perms_has_one_perm_per_unit() {
+        let z = Zn::new(10).unwrap();
+        let perms = z.unit_group_perms().unwrap();
+        assert_eq!(perms.len(), z.units().len());
     }
 
     #[test]
