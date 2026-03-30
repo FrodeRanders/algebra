@@ -12,7 +12,7 @@ use field::fp::{Fp, FpElem};
 use field::fq::{Fq, FqElem};
 use field::poly_fp::PolyFp;
 use group::perm::{Perm, PermSubgroup, Sn};
-use ring::zn::{Zn, ZnElem};
+use ring::zn::{Zn, ZnElem, ZnIdeal};
 
 /// A Python module implemented in Rust.
 #[pymodule]
@@ -27,6 +27,7 @@ mod algebrapy {
         m.add_class::<FqElem>()?;
         m.add_class::<Zn>()?;
         m.add_class::<ZnElem>()?;
+        m.add_class::<ZnIdeal>()?;
         m.add_class::<BinaryBchCode>()?;
         m.add_class::<ReedSolomonCode>()?;
         m.add_class::<Perm>()?;
