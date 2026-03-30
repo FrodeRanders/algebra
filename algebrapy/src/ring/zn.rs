@@ -175,6 +175,16 @@ impl Zn {
         Sn::new(self.n as usize)?.orbits(self.unit_group_perms()?)
     }
 
+    /// Return the stabilizer subgroup of `point` under the unit action `x -> u*x`.
+    pub fn unit_action_stabilizer(&self, point: usize) -> PyResult<Vec<Perm>> {
+        Sn::new(self.n as usize)?.stabilizer(point, self.unit_group_perms()?)
+    }
+
+    /// Return the size of the stabilizer of `point` under the unit action `x -> u*x`.
+    pub fn unit_action_stabilizer_size(&self, point: usize) -> PyResult<usize> {
+        Sn::new(self.n as usize)?.stabilizer_size(point, self.unit_group_perms()?)
+    }
+
     /// Return whether the unit action is transitive on all residues.
     pub fn is_unit_action_transitive(&self) -> PyResult<bool> {
         Sn::new(self.n as usize)?.is_transitive(self.unit_group_perms()?)
@@ -587,6 +597,8 @@ mod tests {
             ]
         );
         assert!(!z.is_unit_action_transitive().unwrap());
+        assert_eq!(z.unit_action_stabilizer_size(1).unwrap(), 1);
+        assert_eq!(z.unit_action_stabilizer_size(6).unwrap(), 4);
     }
 
     #[test]

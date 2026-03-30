@@ -17,6 +17,11 @@ In this codebase:
 - `Sn` provides subgroup and action utilities on `{0, ..., n-1}`
 - `Fp`, `Fq`, and `Zn` can build permutations from arithmetic maps
 
+At this point, the arithmetic side is fairly parallel:
+- `Fp` exposes multiplicative-action summaries directly
+- small `Fq` exposes the same summaries, with enumeration bounds
+- `Zn` exposes the corresponding unit-action summaries
+
 The most important arithmetic maps are:
 - translation: `x -> x + b`
 - multiplication: `x -> a*x`
@@ -88,6 +93,8 @@ Relevant API:
 - `Zn.unit_group_perms`
 - `Zn.unit_action_subgroup_size`
 - `Zn.unit_action_orbits`
+- `Zn.unit_action_stabilizer`
+- `Zn.unit_action_stabilizer_size`
 - `Zn.is_unit_action_transitive`
 
 Runnable examples:
@@ -125,6 +132,24 @@ Given one or more generators, `Sn` can tell you how the generated subgroup acts:
 
 This is the standard orbit-stabilizer toolkit in a concrete computational form.
 
+## Beyond arithmetic: conjugation in `S_n`
+
+The same permutation tools are also useful without any ring or field in the picture.
+
+Inside `S_n`, permutations act on each other by conjugation:
+
+`g * p * g^-1`
+
+This does not change cycle type, which is why cycle structure organizes conjugacy classes in symmetric groups.
+
+Relevant API:
+- `Perm.conjugate_by`
+- `Sn.conjugacy_class`
+- `Sn.conjugacy_class_size`
+
+Runnable example:
+- [`play/sn_conjugacy_demo.py`](play/sn_conjugacy_demo.py)
+
 ## A good comparison to keep in mind
 
 ### `GF(7)`
@@ -150,6 +175,10 @@ Then the action on residues splits into several orbits:
 - `[4, 8]`
 - `[6]`
 
+The stabilizers also differ:
+- `1` has stabilizer size `1`
+- `6` has stabilizer size `4`
+
 That fragmentation reflects the presence of zero divisors and non-units.
 
 ## Suggested study path
@@ -164,6 +193,8 @@ If you want to learn the codebase in a mathematically sensible order:
    Focus on orbit splitting in `Z/12Z`.
 4. Then read [`play/fq_permutation_actions.py`](play/fq_permutation_actions.py)
    Focus on how the same picture extends to `GF(2^3)`.
+5. Finally read [`play/sn_conjugacy_demo.py`](play/sn_conjugacy_demo.py)
+   Focus on what the same permutation toolkit says about groups acting on themselves by conjugation.
 
 ## Where to look next
 
@@ -174,3 +205,4 @@ For runnable demonstrations:
 - [`play/fp_permutation_actions.py`](play/fp_permutation_actions.py)
 - [`play/fq_permutation_actions.py`](play/fq_permutation_actions.py)
 - [`play/zn_permutation_actions.py`](play/zn_permutation_actions.py)
+- [`play/sn_conjugacy_demo.py`](play/sn_conjugacy_demo.py)
