@@ -20,6 +20,8 @@ This is algebrapy - a Python package for abstract algebra implemented in Rust (u
 - BinaryBchCode - primitive narrow-sense binary BCH generator construction, encoding, and syndrome checks
 - ReedSolomonCode - primitive narrow-sense Reed-Solomon codes over GF(p^m)
 
+For a narrative guide to arithmetic as permutation actions, see [`docs/finite-actions-guide.md`](docs/finite-actions-guide.md).
+
 For a method-by-method catalog of the algebraic APIs, see [`docs/group-ring-field-catalog.md`](docs/group-ring-field-catalog.md).
 
 ## Example usage
