@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 use pyo3::{Py, PyAny};
 
 use super::poly_fp::PolyFp;
+use crate::arith::prime::is_prime_u64;
 use crate::group::perm::{Perm, Sn};
 
 /// The extension field `GF(p^k)` represented as `F_p[x] / (f)`.
@@ -112,9 +113,12 @@ fn poly_mod(p: u64, mut a: Vec<u64>, modulus: &[u64]) -> PyResult<Vec<u64>> {
 #[pymethods]
 impl Fq {
     /// Construct GF(p^k) as Fp[x]/(f). `modulus_coeffs` is low->high coeffs for f.
-    /// For now, f must be monic and irreducible, which can be checked via PolyFp.is_irreducible().
+    /// Requires p prime and f monic irreducible over Fp.
     #[new]
     pub fn new(p: u64, modulus_coeffs: Vec<i128>) -> PyResult<Self> {
+        if !is_prime_u64(p) {
+            return Err(PyValueError::new_err("p must be prime for Fq(p, f)"));
+        }
         let modulus = PolyFp::new(p, modulus_coeffs)?;
         if modulus.degree() < 1 {
             return Err(PyValueError::new_err("modulus degree must be >= 1"));
@@ -123,6 +127,11 @@ impl Fq {
         if *mc.last().unwrap() != 1 {
             return Err(PyValueError::new_err(
                 "for now, modulus must be monic (leading coefficient 1)",
+            ));
+        }
+        if !modulus.is_irreducible()? {
+            return Err(PyValueError::new_err(
+                "modulus polynomial must be irreducible over Fp",
             ));
         }
         Ok(Self {
