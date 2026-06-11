@@ -448,14 +448,14 @@ The test suite (`tests/`) contains 172 pytest tests organized by module area:
 
 | File | Tests | Covers |
 |---|---|---|
-| `tests/test_fp.py` | 23 | Prime fields: construction, arithmetic, operators, multiplicative orders, discrete log, square roots, quadratic residues, permutation actions, Fermat |
+| `tests/test_fp.py` | 18 | Prime fields: construction, arithmetic, operators, multiplicative orders, discrete log, square roots, quadratic residues, permutation actions, Fermat |
 | `tests/test_fq.py` | 19 | Extension fields: construction, enumeration, arithmetic, trace/norm, primitive elements, permutation actions |
 | `tests/test_zn.py` | 23 | Residue rings: units, zero divisors, ideals, integral domain checks, permutation/unit actions |
-| `tests/test_perm.py` | 28 | Permutations: construction, compose, invert, cycles, order, conjugation, subgroups, orbits, stabilizers, Sylow, normality |
+| `tests/test_perm.py` | 31 | Permutations: construction, compose, invert, cycles, order, conjugation, subgroups, orbits, stabilizers, Sylow, normality |
 | `tests/test_coding.py` | 22 | Binary BCH: Hamming(7,4), BCH(15,7,5) encoding/decoding/shortening/matrices/weight distribution. Reed-Solomon: RS(7,3,5) over GF(8) encode/decode/error correction |
-| `tests/test_comparisons.py` | 20 | `__eq__`, `__ne__`, `__hash__` for all classes — verifying Python equality, dict keys, and set membership |
-| `tests/test_poly.py` | 20 | Polynomials over F_p: arithmetic operators (`+`, `-`, `*`, `**`, `-`), monic, gcd/egcd, division, irreducibility, eval |
-| `tests/test_cyclic.py` | 17 | Cyclic groups: generators, element orders, group operations, subgroups, subgroup lattice |
+| `tests/test_comparisons.py` | 22 | `__eq__`, `__ne__`, `__hash__` for all classes — verifying Python equality, dict keys, and set membership |
+| `tests/test_poly.py` | 21 | Polynomials over F_p: arithmetic operators (`+`, `-`, `*`, `**`, `-`), monic, gcd/egcd, division, irreducibility, eval |
+| `tests/test_cyclic.py` | 16 | Cyclic groups: generators, element orders, group operations, subgroups, subgroup lattice |
 
 ## Play with the Algebra package
 

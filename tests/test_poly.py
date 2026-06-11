@@ -84,6 +84,10 @@ class TestPolyFp:
     def test_is_irreducible(self):
         assert alg.PolyFp(2, [1, 1, 0, 1]).is_irreducible()
         assert not alg.PolyFp(2, [1, 0, 1]).is_irreducible()
+        assert alg.PolyFp(2, [1, 1, 0, 0, 1]).is_irreducible()
+        assert not alg.PolyFp(3, [2, 0, 1]).is_irreducible()
+        with pytest.raises(ValueError):
+            alg.PolyFp(4, [1, 1, 1]).is_irreducible()
 
     def test_eval(self):
         p = alg.PolyFp(7, [1, 2, 3])  # 1 + 2x + 3x^2

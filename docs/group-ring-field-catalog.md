@@ -516,7 +516,7 @@ Represents a polynomial over `F_p` stored as coefficients from low degree to hig
 - `egcd(other)`:
   Return `(g, s, t)` satisfying `g = s*self + t*other`.
 - `is_irreducible()`:
-  Return whether the polynomial is irreducible over `F_p`. Uses brute force and is intended for small degrees.
+  Return whether the polynomial is irreducible over `F_p`. Uses Rabin's irreducibility test and requires `p` to be prime.
 - `eval(k)`:
   Evaluate `f(k mod p)`, returning the integer result modulo `p`.
 
@@ -540,7 +540,7 @@ Represents an extension field `GF(p^k)` as `F_p[x] / (f)` where `f` is the suppl
 #### Construction
 
 - `Fq(p, modulus_coeffs)`:
-  Construct the extension field using the polynomial with coefficients `modulus_coeffs`, listed low degree to high degree. The implementation requires the modulus to have degree at least `1` and to be monic. Intended use assumes the modulus is irreducible.
+  Construct the extension field using the polynomial with coefficients `modulus_coeffs`, listed low degree to high degree. The implementation requires `p` to be prime and the modulus to have degree at least `1`, be monic, and be irreducible over `F_p`.
 
 #### Accessors and constructors
 

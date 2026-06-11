@@ -2,6 +2,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use crate::arith::egcd::inv_mod_i128;
+use crate::arith::prime::is_prime_u64;
 
 /// A polynomial over `F_p` stored from low degree to high degree.
 #[pyclass(frozen, from_py_object)]
@@ -254,8 +255,7 @@ impl PolyFp {
         Ok((r0, s0, t0))
     }
 
-    /// Brute-force irreducibility check for small degrees.
-    /// Tries all monic polynomials g with 1 <= deg(g) <= floor(deg(f)/2) and tests divisibility.
+    /// Irreducibility check over F_p using Rabin's test.
     pub fn is_irreducible(&self) -> PyResult<bool> {
         if self.is_zero() {
             return Ok(false);
@@ -264,32 +264,28 @@ impl PolyFp {
         if d <= 0 {
             return Ok(true); // constant or linear nonzero
         }
-        // Ensure monic for a standard notion
-        let f = self.monic()?;
-        let max_g = d / 2;
+        if !is_prime_u64(self.p) {
+            return Err(PyValueError::new_err(
+                "p must be prime for irreducibility over F_p",
+            ));
+        }
 
-        for deg_g in 1..=max_g {
-            // enumerate all monic polynomials of degree deg_g over Fp
-            let count = self.p.pow(deg_g as u32); // number of choices for lower coeffs
-            for t in 0..count {
-                let mut coeffs = vec![0u64; (deg_g as usize) + 1];
-                coeffs[deg_g as usize] = 1;
-                let mut x = t;
-                for i in 0..(deg_g as usize) {
-                    coeffs[i] = x % self.p;
-                    x /= self.p;
-                }
-                let g = PolyFp {
-                    p: self.p,
-                    coeffs: trim(coeffs),
-                };
-                let (_q, r) = f.div_rem(&g)?;
-                if r.is_zero() {
-                    return Ok(false);
-                }
+        let f = self.monic()?;
+        let n = d as usize;
+        let x = PolyFp {
+            p: self.p,
+            coeffs: vec![0, 1],
+        };
+
+        for r in prime_divisors_usize(n) {
+            let h = frobenius_power_x_mod(&f, n / r)?.sub(&x)?;
+            if !f.gcd(&h)?.is_one() {
+                return Ok(false);
             }
         }
-        Ok(true)
+
+        let h = frobenius_power_x_mod(&f, n)?.sub(&x)?;
+        Ok(h.modulo(&f)?.is_zero())
     }
 
     fn check(&self, other: &PolyFp) -> PyResult<()> {
@@ -423,6 +419,57 @@ fn mul_coeffs(p: u64, a: &[u64], b: &[u64]) -> Vec<u64> {
     r
 }
 
+fn prime_divisors_usize(mut n: usize) -> Vec<usize> {
+    let mut out = Vec::new();
+    let mut d = 2usize;
+    while d * d <= n {
+        if n % d == 0 {
+            out.push(d);
+            while n % d == 0 {
+                n /= d;
+            }
+        }
+        d += if d == 2 { 1 } else { 2 };
+    }
+    if n > 1 {
+        out.push(n);
+    }
+    out
+}
+
+fn poly_pow_mod(base: &PolyFp, mut exp: u64, modulus: &PolyFp) -> PyResult<PolyFp> {
+    base.check(modulus)?;
+    if modulus.is_zero() {
+        return Err(PyValueError::new_err("modulus polynomial is zero"));
+    }
+
+    let mut result = PolyFp::new(base.p, vec![1])?;
+    let mut b = base.modulo(modulus)?;
+    while exp > 0 {
+        if (exp & 1) == 1 {
+            result = result.mul(&b)?.modulo(modulus)?;
+        }
+        exp >>= 1;
+        if exp > 0 {
+            b = b.mul(&b)?.modulo(modulus)?;
+        }
+    }
+    Ok(result)
+}
+
+fn frobenius_power_x_mod(modulus: &PolyFp, iterations: usize) -> PyResult<PolyFp> {
+    let mut h = PolyFp {
+        p: modulus.p,
+        coeffs: vec![0, 1],
+    }
+    .modulo(modulus)?;
+
+    for _ in 0..iterations {
+        h = poly_pow_mod(&h, modulus.p, modulus)?;
+    }
+    Ok(h)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -449,6 +496,25 @@ mod tests {
         let a = PolyFp::new(2, vec![0, 1, 1]).unwrap(); // x + x^2
         let b = PolyFp::new(2, vec![0, 1]).unwrap(); // x
         assert_eq!(a.gcd(&b).unwrap().coeffs(), vec![0, 1]);
+    }
+
+    #[test]
+    fn rabin_irreducibility_accepts_and_rejects_expected_polynomials() {
+        let irreducible_cubic = PolyFp::new(2, vec![1, 1, 0, 1]).unwrap();
+        let reducible_quadratic = PolyFp::new(2, vec![1, 0, 1]).unwrap();
+        let irreducible_quartic = PolyFp::new(2, vec![1, 1, 0, 0, 1]).unwrap();
+        let reducible_over_f3 = PolyFp::new(3, vec![2, 0, 1]).unwrap(); // x^2 - 1
+
+        assert!(irreducible_cubic.is_irreducible().unwrap());
+        assert!(!reducible_quadratic.is_irreducible().unwrap());
+        assert!(irreducible_quartic.is_irreducible().unwrap());
+        assert!(!reducible_over_f3.is_irreducible().unwrap());
+    }
+
+    #[test]
+    fn rabin_irreducibility_requires_prime_base() {
+        let f = PolyFp::new(4, vec![1, 1, 1]).unwrap();
+        assert!(f.is_irreducible().is_err());
     }
 
     #[test]
