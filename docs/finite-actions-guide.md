@@ -199,6 +199,8 @@ If you want to learn the codebase in a mathematically sensible order:
    Focus on what the same permutation toolkit says about groups acting on themselves by conjugation.
 6. Then try [`play/sn_sylow_demo.py`](../play/sn_sylow_demo.py)
    Focus on explicit subgroup structure and Sylow `p`-subgroups in `S4`.
+7. Optionally, see [`play/cyclic_group_demo.py`](../play/cyclic_group_demo.py)
+   Focus on lightweight cyclic groups `C_n` with generators, element orders, and subgroup lattices — no symmetric group overhead needed.
 
 ## Where to look next
 
@@ -211,3 +213,5 @@ For runnable demonstrations:
 - [`play/zn_permutation_actions.py`](../play/zn_permutation_actions.py)
 - [`play/sn_conjugacy_demo.py`](../play/sn_conjugacy_demo.py)
 - [`play/sn_sylow_demo.py`](../play/sn_sylow_demo.py)
+- [`play/cyclic_group_demo.py`](../play/cyclic_group_demo.py)
+- [`play/poly_ring_demo.py`](../play/poly_ring_demo.py)

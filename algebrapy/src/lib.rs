@@ -11,6 +11,7 @@ use coding::rs::ReedSolomonCode;
 use field::fp::{Fp, FpElem};
 use field::fq::{Fq, FqElem};
 use field::poly_fp::PolyFp;
+use group::cyclic::Cn;
 use group::perm::{Perm, PermSubgroup, Sn};
 use ring::zn::{Zn, ZnElem, ZnIdeal};
 
@@ -33,6 +34,7 @@ mod algebrapy {
         m.add_class::<Perm>()?;
         m.add_class::<PermSubgroup>()?;
         m.add_class::<Sn>()?;
+        m.add_class::<Cn>()?;
         Ok(())
     }
 

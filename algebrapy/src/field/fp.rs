@@ -377,14 +377,19 @@ impl FpElem {
 
     /// Support `==` and `!=` for elements from the same field.
     pub fn __richcmp__(&self, other: &FpElem, op: pyo3::basic::CompareOp) -> PyResult<bool> {
-        if self.p != other.p {
-            return Ok(false);
-        }
         match op {
-            pyo3::basic::CompareOp::Eq => Ok(self.v == other.v),
-            pyo3::basic::CompareOp::Ne => Ok(self.v != other.v),
+            pyo3::basic::CompareOp::Eq => Ok(self.p == other.p && self.v == other.v),
+            pyo3::basic::CompareOp::Ne => Ok(self.p != other.p || self.v != other.v),
             _ => Err(PyValueError::new_err("Only == and != supported")),
         }
+    }
+
+    /// Support using FpElem as dict keys / set members.
+    pub fn __hash__(&self) -> u64 {
+        let mut h: u64 = 17;
+        h = h.wrapping_mul(31).wrapping_add(self.p);
+        h = h.wrapping_mul(31).wrapping_add(self.v);
+        h
     }
 
     // ---------- element-level helpers ----------

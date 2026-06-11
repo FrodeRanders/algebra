@@ -13,6 +13,7 @@ pub struct BinaryBchCode {
     designed_distance: u64,
     primitive_modulus: PolyFp,
     generator: PolyFp,
+    fq: Fq,
 }
 
 #[pymethods]
@@ -79,6 +80,7 @@ impl BinaryBchCode {
             designed_distance,
             primitive_modulus,
             generator,
+            fq,
         })
     }
 
@@ -428,14 +430,7 @@ impl BinaryBchCode {
 
 impl BinaryBchCode {
     fn extension_field(&self) -> PyResult<Fq> {
-        Fq::new(
-            2,
-            self.primitive_modulus
-                .coeffs()
-                .iter()
-                .map(|&c| c as i128)
-                .collect(),
-        )
+        Ok(self.fq.clone())
     }
 
     fn check_word_length(&self, word_bits: &[u64]) -> PyResult<()> {

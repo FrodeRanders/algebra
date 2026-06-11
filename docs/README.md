@@ -6,4 +6,4 @@ Start here:
 
 Index:
 - [`finite-actions-guide.md`](finite-actions-guide.md): Narrative guide to arithmetic as permutation actions in `Fp`, `Fq`, and `Zn`.
-- [`group-ring-field-catalog.md`](group-ring-field-catalog.md): API catalog for the `group`, `ring`, and `field` packages.
+- [`group-ring-field-catalog.md`](group-ring-field-catalog.md): API catalog for the `group` (Perm, Sn, PermSubgroup, Cn), `ring` (Zn, ZnElem, ZnIdeal), and `field` (Fp, Fq, PolyFp, FpElem, FqElem) packages.

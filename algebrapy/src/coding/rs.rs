@@ -12,6 +12,7 @@ pub struct ReedSolomonCode {
     dimension: usize,
     primitive_modulus: PolyFp,
     generator_coeffs: Vec<Vec<u64>>,
+    fq: Fq,
 }
 
 #[pymethods]
@@ -58,6 +59,7 @@ impl ReedSolomonCode {
             dimension,
             primitive_modulus,
             generator_coeffs: generator.iter().map(FqElem::coeffs).collect(),
+            fq,
         })
     }
 
@@ -195,14 +197,7 @@ impl ReedSolomonCode {
 
 impl ReedSolomonCode {
     fn make_field(&self) -> PyResult<Fq> {
-        Fq::new(
-            self.p,
-            self.primitive_modulus
-                .coeffs()
-                .iter()
-                .map(|&c| c as i128)
-                .collect(),
-        )
+        Ok(self.fq.clone())
     }
 
     fn primitive_element(&self, fq: &Fq) -> PyResult<FqElem> {
@@ -250,7 +245,7 @@ fn build_rs_generator(fq: &Fq, alpha: &FqElem, parity_symbols: u64) -> PyResult<
 
 fn check_symbols(fq: &Fq, symbols: &[FqElem]) -> PyResult<()> {
     for s in symbols {
-        fq.add(s, &fq.zero())?;
+        fq.check(s)?;
     }
     Ok(())
 }

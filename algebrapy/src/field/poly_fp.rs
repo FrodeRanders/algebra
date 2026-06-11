@@ -300,12 +300,100 @@ impl PolyFp {
         }
     }
 
+    /// Support `==` and `!=`.
+    pub fn __richcmp__(&self, other: &PolyFp, op: pyo3::basic::CompareOp) -> PyResult<bool> {
+        match op {
+            pyo3::basic::CompareOp::Eq => Ok(self.p == other.p && self.coeffs == other.coeffs),
+            pyo3::basic::CompareOp::Ne => Ok(self.p != other.p || self.coeffs != other.coeffs),
+            _ => Err(PyValueError::new_err("Only == and != supported")),
+        }
+    }
+
+    /// Support using PolyFp as dict keys / set members.
+    pub fn __hash__(&self) -> u64 {
+        let mut h: u64 = 17;
+        h = h.wrapping_mul(31).wrapping_add(self.p);
+        for &c in &self.coeffs {
+            h = h.wrapping_mul(31).wrapping_add(c);
+        }
+        h
+    }
+
     /// Return a compact debug-style representation.
     pub fn __repr__(&self) -> String {
         if self.coeffs.is_empty() {
             return format!("0 over F{}", self.p);
         }
         format!("{:?} over F{}", self.coeffs, self.p)
+    }
+
+    /// Evaluate f(k mod p) returning f(k) mod p.
+    pub fn eval(&self, k: i128) -> PyResult<u64> {
+        let m = self.p as i128;
+        let x = {
+            let mut r = k % m;
+            if r < 0 {
+                r += m;
+            }
+            r as u64
+        };
+        let mut acc: u64 = 0;
+        let mut xpow: u64 = 1;
+        for &c in &self.coeffs {
+            let term = (c as u128 * xpow as u128 % self.p as u128) as u64;
+            acc = (acc + term) % self.p;
+            xpow = (xpow as u128 * x as u128 % self.p as u128) as u64;
+        }
+        Ok(acc)
+    }
+
+    /// p + q
+    pub fn __add__(&self, other: &PolyFp) -> PyResult<PolyFp> {
+        self.add(other)
+    }
+
+    /// p - q
+    pub fn __sub__(&self, other: &PolyFp) -> PyResult<PolyFp> {
+        self.sub(other)
+    }
+
+    /// p * q
+    pub fn __mul__(&self, other: &PolyFp) -> PyResult<PolyFp> {
+        self.mul(other)
+    }
+
+    /// -p
+    pub fn __neg__(&self) -> PolyFp {
+        self.neg()
+    }
+
+    /// Raise to integer power via repeated squaring.
+    pub fn __pow__(&self, exp: i128, modulo: Option<Py<PyAny>>) -> PyResult<PolyFp> {
+        if modulo.is_some() {
+            return Err(PyValueError::new_err(
+                "3-argument pow(a, e, m) is not supported for PolyFp",
+            ));
+        }
+        if exp < 0 {
+            return Err(PyValueError::new_err("negative exponent not supported for PolyFp"));
+        }
+        let e = exp as u64;
+        if e == 0 {
+            return PolyFp::new(self.p, vec![1]);
+        }
+        let mut ee = e;
+        let mut result = PolyFp::new(self.p, vec![1])?;
+        let mut base = self.clone();
+        while ee > 0 {
+            if (ee & 1) == 1 {
+                result = result.mul(&base)?;
+            }
+            ee >>= 1;
+            if ee > 0 {
+                base = base.mul(&base)?;
+            }
+        }
+        Ok(result)
     }
 }
 

@@ -7,12 +7,14 @@ This is algebrapy - a Python package for abstract algebra implemented in Rust (u
 1. Finite Fields
 - Fp / FpElem - Prime fields GF(p) where p is prime
 - Fq / FqElem - Extension fields GF(p^k) constructed as polynomial quotient rings Fpx/(f) where f is irreducible
+- PolyFp - Polynomials over a prime field with operators, gcd/egcd, division, irreducibility testing, and evaluation
 2. Finite Rings
 - Zn / ZnElem / ZnIdeal - Integer residue rings `Z/nZ` with unit detection, zero-divisor checks, principal ideals, and inversion for units
 3. Permutation Groups
-- Perm - Permutations (bijections) with composition, inversion, exponentiation
+- Perm - Permutations (bijections) with composition, inversion, exponentiation, cycle decomposition, and equality/hashing
 - PermSubgroup - Explicit finite subgroups of `S_n` with order, orbit, stabilizer, normality, and Sylow `p`-subgroup utilities
 - Sn - Symmetric groups S_n with element enumeration and subgroup generation
+- Cn - Cyclic groups C_n with generators, element orders, subgroup lattice, and group operations
 4. Arithmetic Utilities
 - Extended GCD algorithm
 - Prime number checking
@@ -313,8 +315,8 @@ Successfully installed maturin-1.12.4
 ## Building the Algebra backend
 ```terminaloutput
 (.venv) ➜  (cd algebrapy && maturin develop)
-🔗 Found pyo3 bindings
-🐍 Found CPython 3.12 at .venv/bin/python
+   Found pyo3 bindings
+   Found CPython 3.12 at .venv/bin/python
    Compiling pyo3-build-config v0.28.2
    Compiling pyo3-ffi v0.28.2
    Compiling pyo3-macros-backend v0.28.2
@@ -322,9 +324,9 @@ Successfully installed maturin-1.12.4
    Compiling pyo3-macros v0.28.2
    Compiling algebrapy v0.1.0 (./algebrapy)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.59s
-📦 Built wheel for CPython 3.12 to /var/folders/ld/gmfpcx6n12j8w922_4_sbcvc0000gn/T/.tmpTO7MXa/algebrapy-0.1.0-cp312-cp312-macosx_11_0_arm64.whl
-✏️ Setting installed package as editable
-🛠 Installed algebrapy-0.1.0
+   Built wheel for CPython 3.12 to /var/folders/ld/gmfpcx6n12j8w922_4_sbcvc0000gn/T/.tmpTO7MXa/algebrapy-0.1.0-cp312-cp312-macosx_11_0_arm64.whl
+   Setting installed package as editable
+   Installed algebrapy-0.1.0
 ```
 
 For local Python smoke tests after `maturin develop`, use the virtualenv interpreter directly:
@@ -335,6 +337,36 @@ For local Python smoke tests after `maturin develop`, use the virtualenv interpr
 ```
 
 On this repository, `python3` may still resolve to the system interpreter instead of `.venv/bin/python`, so `import algebrapy` can fail even though the editable install succeeded.
+
+## Running tests
+
+### Rust unit tests
+
+```terminaloutput
+(.venv) ➜  (cd algebrapy && cargo test)
+```
+
+### Python tests
+
+Install pytest into the virtual environment, then run:
+
+```terminaloutput
+(.venv) ➜  pip install pytest
+(.venv) ➜  pytest tests/ -v
+```
+
+The test suite (`tests/`) contains 172 pytest tests organized by module area:
+
+| File | Tests | Covers |
+|---|---|---|
+| `tests/test_fp.py` | 23 | Prime fields: construction, arithmetic, operators, multiplicative orders, discrete log, square roots, quadratic residues, permutation actions, Fermat |
+| `tests/test_fq.py` | 19 | Extension fields: construction, enumeration, arithmetic, trace/norm, primitive elements, permutation actions |
+| `tests/test_zn.py` | 23 | Residue rings: units, zero divisors, ideals, integral domain checks, permutation/unit actions |
+| `tests/test_perm.py` | 28 | Permutations: construction, compose, invert, cycles, order, conjugation, subgroups, orbits, stabilizers, Sylow, normality |
+| `tests/test_coding.py` | 22 | Binary BCH: Hamming(7,4), BCH(15,7,5) encoding/decoding/shortening/matrices/weight distribution. Reed-Solomon: RS(7,3,5) over GF(8) encode/decode/error correction |
+| `tests/test_comparisons.py` | 20 | `__eq__`, `__ne__`, `__hash__` for all classes — verifying Python equality, dict keys, and set membership |
+| `tests/test_poly.py` | 20 | Polynomials over F_p: arithmetic operators (`+`, `-`, `*`, `**`, `-`), monic, gcd/egcd, division, irreducibility, eval |
+| `tests/test_cyclic.py` | 17 | Cyclic groups: generators, element orders, group operations, subgroups, subgroup lattice |
 
 ## Play with the Algebra package
 
@@ -361,6 +393,8 @@ Example scripts in `play/`:
 - `sn_conjugacy_demo.py` - conjugation and conjugacy-class sizes in `S_n`
 - `bch_code_demo.py` - BCH encoding, decoding, shortening, and code parameters
 - `reed_solomon_demo.py` - Reed-Solomon encoding, syndromes, and decoding
+- `poly_ring_demo.py` - polynomial arithmetic over F_p with operator overloading, gcd/egcd, irreducibility, and evaluation
+- `cyclic_group_demo.py` - cyclic groups C_n: generators, element orders, subgroup lattice
 
 ```terminaloutput
 (.venv) ➜  cd play

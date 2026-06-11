@@ -353,14 +353,19 @@ impl ZnElem {
 
     /// Support `==` and `!=` for elements with the same modulus.
     pub fn __richcmp__(&self, other: &ZnElem, op: pyo3::basic::CompareOp) -> PyResult<bool> {
-        if self.n != other.n {
-            return Ok(false);
-        }
         match op {
-            pyo3::basic::CompareOp::Eq => Ok(self.v == other.v),
-            pyo3::basic::CompareOp::Ne => Ok(self.v != other.v),
+            pyo3::basic::CompareOp::Eq => Ok(self.n == other.n && self.v == other.v),
+            pyo3::basic::CompareOp::Ne => Ok(self.n != other.n || self.v != other.v),
             _ => Err(PyValueError::new_err("Only == and != supported")),
         }
+    }
+
+    /// Support using ZnElem as dict keys / set members.
+    pub fn __hash__(&self) -> u64 {
+        let mut h: u64 = 17;
+        h = h.wrapping_mul(31).wrapping_add(self.n);
+        h = h.wrapping_mul(31).wrapping_add(self.v);
+        h
     }
 
     fn check_same_n(&self, other: &ZnElem) -> PyResult<()> {
@@ -602,6 +607,23 @@ impl ZnIdeal {
 
     pub fn __len__(&self) -> usize {
         self.size()
+    }
+
+    /// Support `==` and `!=`.
+    pub fn __richcmp__(&self, other: &ZnIdeal, op: pyo3::basic::CompareOp) -> PyResult<bool> {
+        match op {
+            pyo3::basic::CompareOp::Eq => Ok(self.n == other.n && self.generator == other.generator),
+            pyo3::basic::CompareOp::Ne => Ok(self.n != other.n || self.generator != other.generator),
+            _ => Err(PyValueError::new_err("Only == and != supported")),
+        }
+    }
+
+    /// Support using ZnIdeal as dict keys / set members.
+    pub fn __hash__(&self) -> u64 {
+        let mut h: u64 = 17;
+        h = h.wrapping_mul(31).wrapping_add(self.n);
+        h = h.wrapping_mul(31).wrapping_add(self.generator);
+        h
     }
 
     pub fn __repr__(&self) -> String {

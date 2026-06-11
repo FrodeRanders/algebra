@@ -534,7 +534,7 @@ impl Fq {
         Ok(out)
     }
 
-    fn check(&self, a: &FqElem) -> PyResult<()> {
+    pub(crate) fn check(&self, a: &FqElem) -> PyResult<()> {
         if a.p != self.p || a.modulus_coeffs != self.modulus.coeffs() {
             Err(PyValueError::new_err("Mixed parents (different field)"))
         } else {
@@ -599,6 +599,19 @@ impl FqElem {
             pyo3::basic::CompareOp::Ne => Ok(!eq),
             _ => Err(PyValueError::new_err("Only == and != supported")),
         }
+    }
+
+    /// Support using FqElem as dict keys / set members.
+    pub fn __hash__(&self) -> u64 {
+        let mut h: u64 = 17;
+        h = h.wrapping_mul(31).wrapping_add(self.p);
+        for &c in &self.modulus_coeffs {
+            h = h.wrapping_mul(31).wrapping_add(c);
+        }
+        for &c in &self.coeffs {
+            h = h.wrapping_mul(31).wrapping_add(c);
+        }
+        h
     }
 
     // ---------- core helpers ----------
