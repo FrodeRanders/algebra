@@ -51,9 +51,9 @@ print("a^6 =", a**6)          # Fermat: a^(p-1) = 1 for a != 0
 print("order(a) =", a.mul_order())
 print()
 
-# Extension field GF(2^3) = F2[x] / (1 + x^2 + x^3)
-# coefficients are low -> high, so [1, 0, 1, 1] means 1 + x^2 + x^3
-K = alg.Fq(2, [1, 0, 1, 1])
+# Extension field GF(2^3) = F2[x] / (1 + x + x^3)
+# coefficients are low -> high, so [1, 1, 0, 1] means 1 + x + x^3
+K = alg.Fq(2, [1, 1, 0, 1])
 x = K.elem([0, 1])            # x
 c = K.elem([1, 0, 1])         # 1 + x^2
 
@@ -123,9 +123,9 @@ GF(2^3)
 x = x in GF(2^3)
 c = 1 + x^2 in GF(2^3)
 x + c = 1 + x + x^2 in GF(2^3)
-x * c = 1 + x + x^2 in GF(2^3)
+x * c = 1 in GF(2^3)
 x^7 = 1 in GF(2^3)
-c^-1 = 1 + x + x^2 in GF(2^3)
+c^-1 = x in GF(2^3)
 
 Z/12Z
 modulus = 12
