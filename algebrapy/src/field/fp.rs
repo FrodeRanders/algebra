@@ -2,6 +2,7 @@ use pyo3::exceptions::{PyValueError, PyZeroDivisionError};
 use pyo3::prelude::*;
 use std::collections::HashMap;
 
+use crate::action::FiniteAction;
 use crate::arith::egcd::inv_mod_i128;
 use crate::arith::prime::is_prime_u64;
 use crate::group::perm::{Perm, Sn};
@@ -159,6 +160,35 @@ impl Fp {
                 })
                 .collect(),
         )?)
+    }
+
+    /// Return the lazy action `x -> x + b` without materializing a permutation.
+    pub fn add_action(&self, b: &FpElem) -> PyResult<FiniteAction> {
+        self.check(b)?;
+        Ok(FiniteAction::fp(self.p, 1, b.v))
+    }
+
+    /// Return the lazy action `x -> a*x` without materializing a permutation.
+    pub fn mul_action(&self, a: &FpElem) -> PyResult<FiniteAction> {
+        self.check(a)?;
+        if a.v == 0 {
+            return Err(PyValueError::new_err(
+                "0 is not invertible, so x -> a*x is not a permutation",
+            ));
+        }
+        Ok(FiniteAction::fp(self.p, a.v, 0))
+    }
+
+    /// Return the lazy action `x -> a*x + b` without materializing a permutation.
+    pub fn affine_action(&self, a: &FpElem, b: &FpElem) -> PyResult<FiniteAction> {
+        self.check(a)?;
+        self.check(b)?;
+        if a.v == 0 {
+            return Err(PyValueError::new_err(
+                "leading coefficient must be nonzero for x -> a*x + b to be a permutation",
+            ));
+        }
+        Ok(FiniteAction::fp(self.p, a.v, b.v))
     }
 
     /// Return the permutation representation of the multiplicative group acting by `x -> a*x`.

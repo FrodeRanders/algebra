@@ -1,11 +1,13 @@
 use pyo3::prelude::*;
 
+pub mod action;
 pub mod arith;
 pub mod coding;
 pub mod field;
 pub mod group;
 pub mod ring;
 
+use action::FiniteAction;
 use coding::bch::BinaryBchCode;
 use coding::rs::ReedSolomonCode;
 use field::fp::{Fp, FpElem};
@@ -13,6 +15,7 @@ use field::fq::{Fq, FqElem};
 use field::poly_fp::PolyFp;
 use group::cyclic::Cn;
 use group::perm::{Perm, PermSubgroup, Sn};
+use group::perm_group::PermGroup;
 use ring::zn::{Zn, ZnElem, ZnIdeal};
 
 /// A Python module implemented in Rust.
@@ -33,8 +36,10 @@ mod algebrapy {
         m.add_class::<ReedSolomonCode>()?;
         m.add_class::<Perm>()?;
         m.add_class::<PermSubgroup>()?;
+        m.add_class::<PermGroup>()?;
         m.add_class::<Sn>()?;
         m.add_class::<Cn>()?;
+        m.add_class::<FiniteAction>()?;
         Ok(())
     }
 

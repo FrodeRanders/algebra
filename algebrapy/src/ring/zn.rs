@@ -2,6 +2,7 @@ use pyo3::exceptions::{PyValueError, PyZeroDivisionError};
 use pyo3::prelude::*;
 use pyo3::{Py, PyAny};
 
+use crate::action::FiniteAction;
 use crate::arith::egcd::inv_mod_i128;
 use crate::arith::prime::is_prime_u64;
 use crate::group::perm::{Perm, Sn};
@@ -180,6 +181,35 @@ impl Zn {
                 })
                 .collect(),
         )?)
+    }
+
+    /// Return the lazy action `x -> x + b` without materializing a permutation.
+    pub fn add_action(&self, b: &ZnElem) -> PyResult<FiniteAction> {
+        self.check(b)?;
+        Ok(FiniteAction::zn(self.n, 1, b.v))
+    }
+
+    /// Return the lazy action `x -> a*x` for a unit `a`.
+    pub fn mul_action(&self, a: &ZnElem) -> PyResult<FiniteAction> {
+        self.check(a)?;
+        if !a.is_unit() {
+            return Err(PyValueError::new_err(
+                "element is not a unit, so x -> a*x is not a permutation",
+            ));
+        }
+        Ok(FiniteAction::zn(self.n, a.v, 0))
+    }
+
+    /// Return the lazy action `x -> a*x + b` for a unit `a`.
+    pub fn affine_action(&self, a: &ZnElem, b: &ZnElem) -> PyResult<FiniteAction> {
+        self.check(a)?;
+        self.check(b)?;
+        if !a.is_unit() {
+            return Err(PyValueError::new_err(
+                "leading coefficient is not a unit, so x -> a*x + b is not a permutation",
+            ));
+        }
+        Ok(FiniteAction::zn(self.n, a.v, b.v))
     }
 
     /// Return the permutation representation of the unit group acting by multiplication.

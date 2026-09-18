@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 use pyo3::{Py, PyAny};
 
 use super::poly_fp::PolyFp;
+use crate::action::FiniteAction;
 use crate::arith::prime::is_prime_u64;
 use crate::group::perm::{Perm, Sn};
 
@@ -323,6 +324,35 @@ impl Fq {
         Ok(Perm::new(elems.len(), images)?)
     }
 
+    /// Return the lazy action `x -> x + b` without materializing a permutation.
+    pub fn add_action(&self, b: &FqElem) -> PyResult<FiniteAction> {
+        self.check(b)?;
+        Ok(FiniteAction::fq(self.clone(), self.one(), b.clone()))
+    }
+
+    /// Return the lazy action `x -> a*x` without materializing a permutation.
+    pub fn mul_action(&self, a: &FqElem) -> PyResult<FiniteAction> {
+        self.check(a)?;
+        if a.coeffs.is_empty() {
+            return Err(PyValueError::new_err(
+                "0 is not invertible, so x -> a*x is not a permutation",
+            ));
+        }
+        Ok(FiniteAction::fq(self.clone(), a.clone(), self.zero()))
+    }
+
+    /// Return the lazy action `x -> a*x + b` without materializing a permutation.
+    pub fn affine_action(&self, a: &FqElem, b: &FqElem) -> PyResult<FiniteAction> {
+        self.check(a)?;
+        self.check(b)?;
+        if a.coeffs.is_empty() {
+            return Err(PyValueError::new_err(
+                "leading coefficient must be nonzero for x -> a*x + b to be a permutation",
+            ));
+        }
+        Ok(FiniteAction::fq(self.clone(), a.clone(), b.clone()))
+    }
+
     /// Return the permutation representation of the multiplicative group acting by `x -> a*x`.
     /// Uses the default enumeration bound `max_size = 4096`.
     pub fn multiplicative_group_perms(&self) -> PyResult<Vec<Perm>> {
@@ -549,6 +579,36 @@ impl Fq {
         } else {
             Ok(())
         }
+    }
+}
+
+impl Fq {
+    /// Decode a point index `0..p^k-1` into its base-`p` coefficient vector.
+    pub(crate) fn point_to_elem(&self, mut point: u64) -> FqElem {
+        let mut coeffs = vec![0u64; self.k];
+        for i in 0..self.k {
+            coeffs[i] = point % self.p;
+            point /= self.p;
+        }
+        FqElem {
+            p: self.p,
+            modulus_coeffs: self.modulus.coeffs(),
+            coeffs: trim(coeffs),
+        }
+    }
+
+    /// Encode a reduced element as its point index in `0..p^k-1`.
+    pub(crate) fn elem_to_point(&self, elem: &FqElem) -> u64 {
+        let mut point = 0u64;
+        for &c in elem.coeffs.iter().rev() {
+            point = point * self.p + c;
+        }
+        point
+    }
+
+    /// Return whether two fields have the same characteristic and modulus.
+    pub(crate) fn same_field(&self, other: &Fq) -> bool {
+        self.p == other.p && self.modulus == other.modulus
     }
 }
 

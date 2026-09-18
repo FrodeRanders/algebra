@@ -244,6 +244,86 @@ def test_sylow_subgroups_s4():
     assert all(h.is_sylow_p_subgroup(2, g) for h in sylow2)
 
 
+def test_perm_group_matches_explicit_subgroup():
+    s4 = alg.Sn(4)
+    t = alg.Perm.cycle(4, [0, 1])
+    c = alg.Perm.cycle(4, [0, 1, 2, 3])
+
+    explicit = s4.generated([t, c])
+    lazy = s4.generated_group([t, c])
+
+    assert lazy.order() == explicit.order() == 24
+    assert lazy.orbits() == explicit.orbits()
+    assert lazy.contains(t)
+    assert lazy.contains(c)
+    assert not lazy.is_abelian()
+    assert lazy.stabilizer_size(0) == explicit.stabilizer_size(0)
+    assert lazy.stabilizer(0).order() == explicit.stabilizer(0).order()
+    assert len(lazy.base()) > 0
+    assert len(lazy.strong_generators()) >= 2
+
+
+def test_perm_group_membership_rejects_outsiders():
+    c4 = alg.PermGroup(4, [alg.Perm.cycle(4, [0, 1, 2, 3])])
+    assert c4.contains(alg.Perm.cycle(4, [0, 1, 2, 3]))
+    assert not c4.contains(alg.Perm.cycle(4, [0, 1]))
+    with pytest.raises(ValueError):
+        c4.contains(alg.Perm.identity(5))
+
+
+def test_perm_group_large_symmetric_order():
+    t = alg.Perm.cycle(12, [0, 1])
+    c = alg.Perm.cycle(12, list(range(12)))
+    g = alg.PermGroup(12, [t, c])
+
+    assert g.order() == 479001600
+    assert g.is_transitive()
+    assert g.stabilizer_size(0) == 39916800
+    assert g.p_part_order(2) == 1024
+    assert not g.is_abelian()
+
+
+def test_perm_group_as_explicit_bounds():
+    c3 = alg.PermGroup(6, [alg.Perm.cycle(6, [0, 1, 2])])
+    assert c3.as_explicit(10).order() == 3
+
+    s12 = alg.PermGroup(12, [
+        alg.Perm.cycle(12, [0, 1]),
+        alg.Perm.cycle(12, list(range(12))),
+    ])
+    with pytest.raises(ValueError):
+        s12.as_explicit(100)
+
+
+def test_perm_group_stabilizer_of_arbitrary_point():
+    g = alg.PermGroup(4, [
+        alg.Perm.cycle(4, [0, 1]),
+        alg.Perm.cycle(4, [0, 1, 2, 3]),
+    ])
+    for point in range(4):
+        assert g.stabilizer(point).order() == 6
+        assert g.stabilizer_size(point) == 6
+
+
+def test_perm_group_trivial():
+    g = alg.PermGroup(4, [])
+    assert g.order() == 1
+    assert g.orbits() == [[0], [1], [2], [3]]
+    assert g.contains(alg.Perm.identity(4))
+    assert g.as_explicit().order() == 1
+
+    identity_only = alg.PermGroup(4, [alg.Perm.identity(4)])
+    assert identity_only.order() == 1
+
+
+def test_perm_group_abelian_and_p_group():
+    c6 = alg.PermGroup(6, [alg.Perm.cycle(6, [0, 1, 2, 3, 4, 5])])
+    assert c6.is_abelian()
+    assert not c6.is_p_group(2)
+    assert c6.p_part_order(3) == 3
+    assert c6.stabilizer_size(0) == 1
+
+
 def test_dihedral_8():
     s4 = alg.Sn(4)
     r = alg.Perm.cycle(4, [0, 1, 2, 3])
